@@ -2,6 +2,9 @@
 import os
 from .config import Config
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
 
 
 def make_app(test_config: dict = None) -> Flask:
@@ -29,5 +32,7 @@ def make_app(test_config: dict = None) -> Flask:
     else:
         app.config.from_pyfile('production_config.py', silent=True)
     os.makedirs(app.instance_path, exist_ok=True)
+
+    db.init_app(app)
 
     return app
