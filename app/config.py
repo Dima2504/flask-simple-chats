@@ -9,6 +9,7 @@ class Config:
     replaced with other ones from environment variables or from :file:`../instance/production_config.py`
     """
     SECRET_KEY = os.getenv('SECRET_KEY') or 'development'
+    SEND_FILE_MAX_AGE_DEFAULT = 0
     DEBUG = True
     DB_USERNAME = os.getenv('DB_USERNAME') or 'postgres'
     DB_PASSWORD = os.getenv('DB_PASSWORD') or 'postgres'
