@@ -1,4 +1,6 @@
 """Initial module according to the flask factory pattern"""
+import os
+from .config import Config
 from flask import Flask
 
 
@@ -20,6 +22,12 @@ def make_app(test_config: dict = None) -> Flask:
     :rtype: Flask
     """
 
-    app = Flask(__name__)
+    app = Flask(__name__, instance_relative_config=True)
+    app.config.from_object(Config)
+    if test_config:
+        app.config.update(test_config)
+    else:
+        app.config.from_pyfile('production_config.py', silent=True)
+    os.makedirs(app.instance_path, exist_ok=True)
 
     return app
