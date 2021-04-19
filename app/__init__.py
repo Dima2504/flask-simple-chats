@@ -3,8 +3,10 @@ import os
 from .config import Config
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 db = SQLAlchemy()
+migrate = Migrate()
 
 
 def make_app(test_config: dict = None) -> Flask:
@@ -34,5 +36,6 @@ def make_app(test_config: dict = None) -> Flask:
     os.makedirs(app.instance_path, exist_ok=True)
 
     db.init_app(app)
+    migrate.init_app(app, db)
 
     return app
