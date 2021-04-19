@@ -1,5 +1,5 @@
 """Typical setup module
-Performs operations to install the program considering settings, specified in setup.cfg.
+Performs operations to install the program considering settings, specified in :file:`setup.cfg`.
 """
 from setuptools import setup
 
