@@ -38,4 +38,7 @@ def make_app(test_config: dict = None) -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
 
+    from app.views import view
+    app.register_blueprint(view)
+
     return app
