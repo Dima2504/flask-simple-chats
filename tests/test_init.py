@@ -2,6 +2,7 @@ import unittest
 from flask import current_app
 from app.config import TestConfig
 from app import make_app
+import os
 
 
 class InitTestCase(unittest.TestCase):
@@ -21,3 +22,11 @@ class InitTestCase(unittest.TestCase):
 
     def test_config(self):
         self.assertTrue(self.app.config['TESTING'])
+
+    def test_instance_folder_exists(self):
+        self.assertTrue(os.path.exists(self.app.instance_path))
+
+    def test_testing_db_exists(self):
+        self.assertTrue(os.path.exists(os.path.join(self.app.config['TEST_DB_PATH'], self.app.config['TEST_DB_NAME'])))
+
+
