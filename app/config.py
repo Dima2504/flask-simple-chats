@@ -18,3 +18,15 @@ class Config:
     DB_NAME = os.getenv('DB_NAME') or 'flask-simple-chats'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+
+
+class TestConfig(Config):
+    """
+    Declares specific settings for testing.
+    Likely, you want to involve exactly sqlite database, so it will be created in :path:`../instance` to prevent from
+    checking in.
+    """
+    TESTING = True
+    TEST_DB_PATH = os.getenv('TEST_DB_PATH') or '/tmp'
+    TEST_DB_NAME = os.getenv('TEST_DB_NAME') or 'chats_test_db.sqlite'
+    SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(TEST_DB_PATH, TEST_DB_NAME)}'

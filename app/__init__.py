@@ -9,7 +9,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 
 
-def make_app(test_config: dict = None) -> Flask:
+def make_app(test_config: object = None) -> Flask:
     """
     An application factory like in the official documentation.
     Creates and configures the main flask instance registering all the blueprints and additions.
@@ -30,7 +30,7 @@ def make_app(test_config: dict = None) -> Flask:
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(Config)
     if test_config:
-        app.config.update(test_config)
+        app.config.from_object(test_config)
     else:
         app.config.from_pyfile('production_config.py', silent=True)
     os.makedirs(app.instance_path, exist_ok=True)
@@ -40,5 +40,8 @@ def make_app(test_config: dict = None) -> Flask:
 
     from app.views import view
     app.register_blueprint(view)
+
+    from app.commands import cli_commands
+    app.register_blueprint(cli_commands)
 
     return app
