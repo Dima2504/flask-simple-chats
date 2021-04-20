@@ -44,4 +44,7 @@ def make_app(test_config: object = None) -> Flask:
     from app.commands import cli_commands
     app.register_blueprint(cli_commands)
 
+    from app.authentication import authentication
+    app.register_blueprint(authentication)
+
     return app
