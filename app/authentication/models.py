@@ -1,6 +1,7 @@
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
+from app.authentication.exceptions import UserNotFoundByIndexError
 
 
 class User(db.Model):
@@ -26,3 +27,11 @@ class User(db.Model):
 
     def __repr__(self) -> str:
         return f'User - {self.username}'
+
+    @classmethod
+    def get_user_by_id(cls, user_id: int) -> 'User':
+        """Return user with given id if exists, else - raise error"""
+        user = cls.query.get(user_id)
+        if not user:
+            raise UserNotFoundByIndexError
+        return user
