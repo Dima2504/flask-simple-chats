@@ -76,7 +76,7 @@ class RegisterView(MethodView):
 @auth_bp.route('/logout')
 def logout():
     """Clears user`s id from session"""
-    session.pop('current_user_id')
+    session.clear()
     return redirect(url_for('view.index'))
 
 
