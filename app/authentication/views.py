@@ -8,6 +8,7 @@ from flask import session, g
 from flask import flash
 from flask import render_template
 from flask.views import MethodView
+from app.authentication.decorators import anonymous_required
 
 
 @auth_bp.before_app_request
@@ -44,6 +45,8 @@ class LoginView(MethodView):
 
 
 class RegisterView(MethodView):
+    decorators = [anonymous_required, ]
+
     def get(self):
         """Renders registration page"""
         return render_template('authentication/register.html')
