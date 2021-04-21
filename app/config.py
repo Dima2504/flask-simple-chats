@@ -22,6 +22,9 @@ class Config:
     MAIL_PORT = os.getenv('EMAIL_PORT') or '587'
     MAIL_USERNAME = os.getenv('EMAIL_HOST_USER')
     MAIL_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+    MAIL_USE_TLS = True
+    MAIL_DEFAULT_SENDER = MAIL_USERNAME
+
 
 class TestConfig(Config):
     """
