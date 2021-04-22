@@ -64,10 +64,12 @@ class RegisterView(MethodView):
         email = request.form['email']
         username = request.form['username']
         name = request.form['name']
-        password = request.form['password']
+        password1 = request.form['password1']
+        password2 = request.form['password2']
         try:
             validate_email(email)
-            validate_password_length(password)
+            validate_equal_passwords(password1, password2)
+            validate_password_length(password2)
         except ValidationError as e:
             flash(e.message)
             return render_template('authentication/register.html')
@@ -78,7 +80,7 @@ class RegisterView(MethodView):
             flash('This username is busy! Try putting another one')
         else:
             user = User(email=email, username=username, name=name)
-            user.set_password(password)
+            user.set_password(password2)
             db.session.add(user)
             db.session.commit()
             flash('Successfully registered!')
