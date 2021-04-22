@@ -10,6 +10,8 @@ from flask import render_template
 from flask import abort
 from flask.views import MethodView
 from app.authentication.decorators import anonymous_required
+from app.authentication.validators import validate_equal_passwords, validate_email, validate_password_length
+from app.authentication.exceptions import ValidationError
 from itsdangerous.exc import SignatureExpired, BadSignature
 
 
@@ -63,16 +65,23 @@ class RegisterView(MethodView):
         username = request.form['username']
         name = request.form['name']
         password = request.form['password']
+        try:
+            validate_email(email)
+            validate_password_length(password)
+        except ValidationError as e:
+            flash(e.message)
+            return render_template('authentication/register.html')
+
         if User.query.filter_by(email=email).first():
             flash('User with such an email has been registered!')
         elif User.query.filter_by(username=username).first():
             flash('This username is busy! Try putting another one')
         else:
-            flash('Successfully registered!')
             user = User(email=email, username=username, name=name)
             user.set_password(password)
             db.session.add(user)
             db.session.commit()
+            flash('Successfully registered!')
             return redirect(url_for('authentication.login'))
 
         return render_template('authentication/register.html')
@@ -88,6 +97,11 @@ class ForgotPasswordView(MethodView):
     def post(self):
         """Gets an e-mail and send password reset into user's mail"""
         email = request.form['email']
+        try:
+            validate_email(email)
+        except ValidationError as e:
+            flash(e.message)
+            return render_template('authentication/forgot_password.html')
         user = User.query.filter_by(email=email).first()
         if user:
             flash('Thank You, we will contact you by e-email to reset you password!')
@@ -118,6 +132,12 @@ class ResetPasswordView(MethodView):
         password1 = request.form['password1']
         password2 = request.form['password2']
         user = User.get_user_by_reset_password_token(token)
+        try:
+            validate_equal_passwords(password1, password2)
+            validate_password_length(password2)
+        except ValidationError as e:
+            flash(e.message)
+            return render_template('authentication/reset_password.html', user=user)
         user.set_password(password2)
         db.session.add(user)
         db.session.commit()
