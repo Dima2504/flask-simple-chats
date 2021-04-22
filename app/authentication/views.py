@@ -7,8 +7,10 @@ from flask import url_for
 from flask import session, g
 from flask import flash
 from flask import render_template
+from flask import abort
 from flask.views import MethodView
 from app.authentication.decorators import anonymous_required
+from itsdangerous.exc import SignatureExpired, BadSignature
 
 
 @auth_bp.before_app_request
@@ -74,6 +76,53 @@ class RegisterView(MethodView):
             return redirect(url_for('authentication.login'))
 
         return render_template('authentication/register.html')
+
+
+class ForgotPasswordView(MethodView):
+    decorators = [anonymous_required]
+
+    def get(self):
+        """Renders forgot password page"""
+        return render_template('authentication/forgot_password.html')
+
+    def post(self):
+        """Gets an e-mail and send password reset into user's mail"""
+        email = request.form['email']
+        user = User.query.filter_by(email=email).first()
+        if user:
+            flash('Thank You, we will contact you by e-email to reset you password!')
+            user.send_email('Flask simple chats reset password',
+                            render_template('authentication/emails/reset_password.txt',
+                                            user=user, token=user.get_reset_password_token()))
+            return redirect(url_for('authentication.login'))
+        else:
+            flash('User with such an e-mail does not exist')
+            return render_template('authentication/forgot_password.html')
+
+
+class ResetPasswordView(MethodView):
+    decorators = [anonymous_required]
+
+    def get(self, token):
+        """Checks token and if it is right, allows user to visit the page and fill out the form"""
+        try:
+            user = User.get_user_by_reset_password_token(token)
+        except SignatureExpired:
+            return render_template('authentication/reset_password_expired.html')
+        except BadSignature:
+            abort(404)
+        return render_template('authentication/reset_password.html', user=user)
+
+    def post(self, token):
+        """Receives new user password and save it"""
+        password1 = request.form['password1']
+        password2 = request.form['password2']
+        user = User.get_user_by_reset_password_token(token)
+        user.set_password(password2)
+        db.session.add(user)
+        db.session.commit()
+        flash('You password was successfully reset')
+        return redirect(url_for('authentication.login'))
 
 
 @auth_bp.route('/logout')

@@ -24,6 +24,7 @@ class Config:
     MAIL_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
     MAIL_USE_TLS = True
     MAIL_DEFAULT_SENDER = MAIL_USERNAME
+    PASSWORD_DEFAULT_EXPIRES_IN = 1800
 
 
 class TestConfig(Config):
