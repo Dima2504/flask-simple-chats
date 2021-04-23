@@ -1,0 +1,274 @@
+/*Reset*/
+* {
+    padding: 0;
+    margin: 0;
+    border: 0;
+}
+
+*,
+*:before,
+*:after {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+:focus,
+:active {
+    outline: none;
+}
+
+a:focus,
+a:active {
+    outline: none;
+}
+
+nav,
+footer,
+header,
+aside {
+    display: block;
+}
+
+html,
+body {
+    height: 100%;
+    width: 100%;
+    font-size: 100%;
+    line-height: 1;
+    font-size: 14px;
+    -ms-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+}
+
+input,
+button,
+textarea {
+    font-family: inherit;
+}
+
+input::-ms-clear {
+    display: none;
+}
+
+button {
+    cursor: pointer;
+}
+
+button::-moz-focus-inner {
+    padding: 0;
+    border: 0;
+}
+
+a,
+a:visited {
+    color: black;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+ul li {
+    list-style: none;
+}
+
+img {
+    vertical-align: top;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-size: inherit;
+    font-weight: 400;
+}
+
+
+/*--------------------*/
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400&display=swap');
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+.wrapper {
+    max-width: 1500px;
+    margin: 0px auto;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.content {
+    padding: 30px 20px 20px 20px;
+    font-size: 18px;
+    background-color: gainsboro;
+    flex: 1 0 auto;
+}
+
+.flashes {
+    font-size: 13px;
+}
+
+.flashes li {
+    background: beige;
+    margin-bottom: 5px;
+    padding-left: 5px;
+    width: 27%;
+    height: 20px;
+    line-height: 20px;
+    border-radius: 5px;
+    position: relative;
+    animation: flash_drop 10s;
+    animation-fill-mode: forwards;
+    opacity: 0;
+}
+
+@keyframes flash_drop {
+    0% {
+        top: -30px;
+    }
+    10% {
+        opacity: 1;
+        top: 0px;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+.content__header {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.content__header_wrapper {}
+
+.content__title {
+    text-align: center;
+    font-size: 30px;
+    margin-bottom: 15px;
+}
+
+.content__navbar {
+    font-size: 17px;
+    height: 35px;
+    border-radius: 5px;
+    display: flex;
+    text-align: center;
+    line-height: 35px;
+}
+
+.content__login {
+    background-color: gray;
+    height: 100%;
+    flex-grow: 1;
+    border-radius: 5px 0 0 5px;
+}
+
+.content__register {
+    background-color: gray;
+    height: 100%;
+    flex-grow: 1;
+    border-radius: 0 5px 5px 0;
+}
+
+.content__login:hover,
+.content__register:hover {
+    background-color: dimgray;
+    transition-duration: 0.5s;
+}
+
+.content__article {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.content__buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    width: 400px;
+    height: 70%;
+}
+
+.button {
+    font-size: 21px;
+    text-align: center;
+    height: 90px;
+    width: 100%;
+    background-color: gray;
+    border-radius: 10px;
+    line-height: 90px;
+}
+
+.content__form {
+    width: 340px;
+    padding-top: 40px;
+}
+
+.password_forgot{
+    padding-left: 4px;
+    font-size: 15px;
+    height: 22px;
+    text-align: end;
+
+}
+.password_forgot a{
+    color: darkgray;
+}
+.password_forgot a:hover{
+    color: black;
+}
+
+input {
+    width: 100%;
+    display: block;
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 14px 14px;
+    margin-bottom: 10px;
+}
+
+input:focus {
+    border: 2px solid gray;
+}
+
+footer {
+    height: 120px;
+    background-color: darkgray;
+    flex: 0 0 auto;
+}
+
+.footer__container {
+    height: 100%;
+    padding: 25px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+}
+
+.footer__info {
+    color: black;
+    position: relative;
+}
+
+.footer__info p:first-child {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.footer__info p:nth-child(2) {
+    margin-bottom: 8px;
+}

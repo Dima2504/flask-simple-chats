@@ -108,7 +108,7 @@ class ForgotPasswordView(MethodView):
             return render_template('authentication/forgot_password.html')
         user = User.query.filter_by(email=email).first()
         if user:
-            flash('Thank You, we will contact you by e-email to reset you password!')
+            flash('Check Your e-email to reset the password!')
             user.send_email('Flask simple chats reset password',
                             render_template('authentication/emails/reset_password.txt',
                                             user=user, token=user.get_reset_password_token()))

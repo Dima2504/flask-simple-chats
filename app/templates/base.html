@@ -7,17 +7,64 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-<div class="errors">
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul class=flashes>
-                {% for message in messages %}
-                    <li>{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-</div>
-{% block body %}{% endblock %}
+{% block body %}
+    <div class="wrapper">
+        <div class="content">
+            {% block flashes %}
+                <dir class="flashes">
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            <ul>
+                                {% for message in messages %}
+                                    <li>{{ message }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    {% endwith %}
+                </dir>
+            {% endblock %}
+            <div class="content__header">
+                <div class="content__header_wrapper">
+                    <a href="{{ url_for('view.index') }}">
+                        <div onclick="document.location = ''" class="content__title">Welcome to Flask simple chats!
+                        </div>
+                    </a>
+                    <div class="content__navbar">
+                        {% if user %}
+                            <button style="border-radius: 5px" class="content__login"
+                                    onclick="document.location = '{{ url_for('authentication.logout') }}'">Log out
+                            </button>
+                        {% else %}
+                            <button class="content__login"
+                                    onclick="document.location = '{{ url_for('authentication.login') }}'">Log in
+                            </button>
+                            <button onclick="document.location = '{{ url_for('authentication.register') }}'"
+                                    class="content__register">Sign in
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="content__article">
+                {% block content %}
+                {% endblock %}
+            </div>
+            <!--<div class="content__buttons">
+                    <div class="content__chat button">Begin simple chat</div>
+                    <div class="content__encodedchat button">Begin encoded chat</div>
+                </div> -->
+        </div>
+        <footer>
+            <div class="footer__container">
+                <div class="footer__info">
+                    <p>SUPPORT CENTER:</p>
+                    <p><a style="color: black;" href="mailto:duma12let@gmail.com">duma12let@gmail.com</a>
+                    </p>
+                    <p><a style="color: black;" href="https://www.instagram.com/_d.i.m.o.n.c.h.i.k__/">Instagram</a></p>
+                </div>
+            </div>
+        </footer>
+    </div>
+{% endblock %}
 </body>
 </html>
