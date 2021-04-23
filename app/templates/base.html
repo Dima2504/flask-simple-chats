@@ -25,12 +25,23 @@
             {% endblock %}
             <div class="content__header">
                 <div class="content__header_wrapper">
-                    <a href="{{ url_for('view.index') }}"><div onclick="document.location = ''" class="content__title">Welcome to Flask simple chats!</div></a>
+                    <a href="{{ url_for('view.index') }}">
+                        <div onclick="document.location = ''" class="content__title">Welcome to Flask simple chats!
+                        </div>
+                    </a>
                     <div class="content__navbar">
-                        <button class="content__login"
-                                onclick="document.location = '{{ url_for('authentication.login') }}'">Log in
-                        </button>
-                        <button onclick="document.location = '{{ url_for('authentication.register') }}'" class="content__register">Sign in</button>
+                        {% if user %}
+                            <button style="border-radius: 5px" class="content__login"
+                                    onclick="document.location = '{{ url_for('authentication.logout') }}'">Log out
+                            </button>
+                        {% else %}
+                            <button class="content__login"
+                                    onclick="document.location = '{{ url_for('authentication.login') }}'">Log in
+                            </button>
+                            <button onclick="document.location = '{{ url_for('authentication.register') }}'"
+                                    class="content__register">Sign in
+                            </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
