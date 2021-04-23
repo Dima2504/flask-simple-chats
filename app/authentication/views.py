@@ -22,6 +22,8 @@ def recognize_logged_in_user():
 
 
 class LoginView(MethodView):
+    decorators = [anonymous_required]
+
     def get(self):
         """Renders login page"""
         return render_template('authentication/login.html')
