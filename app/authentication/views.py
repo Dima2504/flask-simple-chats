@@ -151,6 +151,7 @@ class ResetPasswordView(MethodView):
 def logout():
     """Clears user`s id from session"""
     session.clear()
+    flash('Successfully logged out')
     return redirect(url_for('view.index'))
 
 
