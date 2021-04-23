@@ -4,9 +4,11 @@ from .config import Config
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_mail import Mail
 
 db = SQLAlchemy()
 migrate = Migrate()
+mail = Mail()
 
 
 def make_app(test_config: object = None) -> Flask:
@@ -37,11 +39,15 @@ def make_app(test_config: object = None) -> Flask:
 
     db.init_app(app)
     migrate.init_app(app, db)
+    mail.init_app(app)
 
     from app.views import view
     app.register_blueprint(view)
 
     from app.commands import cli_commands
     app.register_blueprint(cli_commands)
+
+    from app.authentication import authentication
+    app.register_blueprint(authentication)
 
     return app

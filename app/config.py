@@ -18,6 +18,14 @@ class Config:
     DB_NAME = os.getenv('DB_NAME') or 'flask-simple-chats'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+    MAIL_SERVER = os.getenv('EMAIL_HOST') or 'smtp.gmail.com'
+    MAIL_PORT = os.getenv('EMAIL_PORT') or '587'
+    MAIL_USERNAME = os.getenv('EMAIL_HOST_USER')
+    MAIL_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+    MAIL_USE_TLS = True
+    MAIL_DEFAULT_SENDER = MAIL_USERNAME
+    PASSWORD_DEFAULT_EXPIRES_IN = 1800
+    REQUIRED_MIN_PASSWORD_LENGTH = 8
 
 
 class TestConfig(Config):
