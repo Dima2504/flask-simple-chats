@@ -50,4 +50,7 @@ def make_app(test_config: object = None) -> Flask:
     from app.authentication import authentication
     app.register_blueprint(authentication)
 
+    from app.chats import chats
+    app.register_blueprint(chats)
+
     return app
