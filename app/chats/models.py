@@ -1,6 +1,5 @@
 """Necessary database tables to provide minimal chats application"""
 from app import db
-from app.authentication.models import User
 import datetime
 
 
@@ -18,4 +17,8 @@ class Message(db.Model):
     receiver = db.relationship('User', foreign_keys=[receiver_id], backref='messages_received')
 
 
+chats = db.Table('chats',
+                 db.Column('user1_id', db.Integer, db.ForeignKey('users.user_id')),
+                 db.Column('user2_id', db.Integer, db.ForeignKey('users.user_id')),
+                 db.PrimaryKeyConstraint('user1_id', 'user2_id'))
 

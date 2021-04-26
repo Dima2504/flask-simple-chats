@@ -5,6 +5,7 @@ from app.authentication.exceptions import UserNotFoundByIndexError
 from itsdangerous import TimedJSONWebSignatureSerializer
 from flask import current_app
 from app.authentication.email import send_mail
+from app.chats import models
 
 
 class User(db.Model):
@@ -19,6 +20,9 @@ class User(db.Model):
     name = db.Column(db.String(20))
     password_hash = db.Column(db.String(255), nullable=False)
     data_joined = db.Column(db.DateTime, default=datetime.datetime.utcnow())
+    chats = db.relationship('User', secondary=models.chats,
+                            primaryjoin=models.chats.c.user1_id == user_id,
+                            secondaryjoin=models.chats.c.user2_id == user_id)
 
     def set_password(self, password: str):
         """Hashes user password using werkzeug method and saves it into the appropriate attribute"""
@@ -70,6 +74,23 @@ class User(db.Model):
         serializer = TimedJSONWebSignatureSerializer(current_app.config['SECRET_KEY'])
         user_id = serializer.loads(token)['user_id']
         return cls.get_user_by_id(user_id)
+
+    def create_chat(self, user: 'User') -> None:
+        """Make two notes in chats table, so self-user and given user will be marked that they have chat together.
+        It works bidirectionally, so we don't need to create chat from another side after creating once"""
+        if user not in self.chats:
+            self.chats.append(user)
+            user.chats.append(self)
+
+    def delete_chat(self, user: 'User') -> None:
+        """Delete chat connection between self and given users. Works bidirectionally like a method above"""
+        if user in self.chats:
+            self.chats.remove(user)
+            user.chats.remove(self)
+
+    def is_chat(self, user: 'User') -> bool:
+        """Checks is the current user and a given user have chat together"""
+        return user in self.chats and self in user.chats
 
 
 

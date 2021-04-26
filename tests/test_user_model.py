@@ -5,6 +5,8 @@ from app import mail
 from app.config import TestConfig
 from app.authentication import User
 from app.authentication.exceptions import UserNotFoundByIndexError
+from app.chats.models import chats
+from sqlalchemy.sql import select
 from itsdangerous.exc import SignatureExpired, BadSignature
 import os
 import time
@@ -101,6 +103,31 @@ class UserModelTestCase(unittest.TestCase):
         token = token[:10]
         with self.assertRaises(BadSignature):
             User.get_user_by_reset_password_token(token)
+
+    def test_create_delete_chat(self):
+        user1 = User(email='user1@gmail.com', username='user1', password_hash='123')
+        user2 = User(email='user2@gmail.com', username='user2', password_hash='123')
+        db.session.add_all([user1, user2, ])
+        db.session.commit()
+
+        self.assertFalse(user1.is_chat(user2))
+        self.assertFalse(user2.is_chat(user1))
+        user1.create_chat(user2)
+
+        db.session.add(user1)
+        db.session.commit()
+        result = db.session.execute(select(chats))
+        self.assertEqual(len(result.all()), 2)
+        result.close()
+
+        self.assertTrue(user1.is_chat(user2))
+        self.assertTrue(user2.is_chat(user1))
+        user2.delete_chat(user1)
+        self.assertFalse(user1.is_chat(user2))
+        self.assertFalse(user2.is_chat(user1))
+
+
+
 
 
 
