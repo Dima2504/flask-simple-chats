@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Chats list{% endblock %}
+{% block content %}
+    <div class="content__list">
+        <h1>Chats list for user: {{ user.username }}</h1>
+        <ul>
+            {% for companion in user_companions %}
+                <li>{{ companion.username }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}
