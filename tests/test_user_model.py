@@ -5,7 +5,7 @@ from app import mail
 from app.config import TestConfig
 from app.authentication import User
 from app.authentication.exceptions import UserNotFoundByIndexError
-from app.chats.models import chats
+from app.authentication.models import chats
 from sqlalchemy.sql import select
 from itsdangerous.exc import SignatureExpired, BadSignature
 import os

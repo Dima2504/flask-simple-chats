@@ -15,10 +15,3 @@ class Message(db.Model):
     receiver_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     sender = db.relationship('User', foreign_keys=[sender_id], backref='messages_sent')
     receiver = db.relationship('User', foreign_keys=[receiver_id], backref='messages_received')
-
-
-chats = db.Table('chats',
-                 db.Column('user1_id', db.Integer, db.ForeignKey('users.user_id')),
-                 db.Column('user2_id', db.Integer, db.ForeignKey('users.user_id')),
-                 db.PrimaryKeyConstraint('user1_id', 'user2_id'))
-

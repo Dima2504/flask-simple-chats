@@ -5,7 +5,11 @@ from app.authentication.exceptions import UserNotFoundByIndexError
 from itsdangerous import TimedJSONWebSignatureSerializer
 from flask import current_app
 from app.authentication.email import send_mail
-from app.chats import models
+
+chats = db.Table('chats',
+                 db.Column('user1_id', db.Integer, db.ForeignKey('users.user_id')),
+                 db.Column('user2_id', db.Integer, db.ForeignKey('users.user_id')),
+                 db.PrimaryKeyConstraint('user1_id', 'user2_id'))
 
 
 class User(db.Model):
@@ -20,9 +24,9 @@ class User(db.Model):
     name = db.Column(db.String(20))
     password_hash = db.Column(db.String(255), nullable=False)
     data_joined = db.Column(db.DateTime, default=datetime.datetime.utcnow())
-    chats = db.relationship('User', secondary=models.chats,
-                            primaryjoin=models.chats.c.user1_id == user_id,
-                            secondaryjoin=models.chats.c.user2_id == user_id)
+    chats = db.relationship('User', secondary=chats,
+                            primaryjoin=chats.c.user1_id == user_id,
+                            secondaryjoin=chats.c.user2_id == user_id)
 
     def set_password(self, password: str):
         """Hashes user password using werkzeug method and saves it into the appropriate attribute"""
@@ -91,7 +95,3 @@ class User(db.Model):
     def is_chat(self, user: 'User') -> bool:
         """Checks is the current user and a given user have chat together"""
         return user in self.chats and self in user.chats
-
-
-
-
