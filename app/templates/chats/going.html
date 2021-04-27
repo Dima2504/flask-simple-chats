@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Chat is going{% endblock %}
+{% block content %}
+
+    <div class="content__chat">
+        <textarea id="chat" cols="80" rows="20"></textarea><br><br>
+        <form class="send_message_form">
+            <input id="text" size="80" placeholder="Enter your message here" name="message"><br><br>
+            <input type="submit">
+        </form>
+        <button onclick="">Leave room</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+
+    <script type="text/javascript" charset="utf-8">
+        let socket = io.connect('{{ url_for('chats.going', _external=True) }}');
+        socket.on('connect', function () {
+            console.log('connected');
+        })
+    </script>
+{% endblock %}
