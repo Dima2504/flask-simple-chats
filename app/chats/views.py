@@ -9,6 +9,7 @@ from flask import render_template
 from flask import abort
 from flask import redirect
 from flask import url_for
+from .utils import get_users_unique_room_name
 
 
 class UserChatsList(MethodView):
@@ -32,17 +33,31 @@ class UserChatBegin(MethodView):
         user = g.user
         if not db.session.query(exists().where(User.username == companion_username)).scalar():
             abort(404)
-        room_name = '_'.join(sorted([user.username, companion_username]))    # FIXME
+        room_name = None
+        try:
+            room_name = get_users_unique_room_name(user.username, companion_username)
+        except ValueError:
+            abort(404)
         session['room_name'] = room_name
         session['user_name'] = user.name
         return redirect(url_for('chats.going'))
+
+
+class UserChatEnd(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        """Removes information from user session when he leaves the room"""
+        session.pop('room_name')
+        session.pop('user_name')
+        return redirect(url_for('view.index'))
 
 
 class UsersChatGoing(MethodView):
     decorators = [login_required, ]
 
     def get(self):
-        """Checks whether the session has obligatory params of not. If not, return page not found.
+        """Checks whether the session has obligatory params or not. If not, return page not found.
         If everything is OK, renders chat room template"""
         user_name = session.get('user_name')
         room_name = session.get('room_name')

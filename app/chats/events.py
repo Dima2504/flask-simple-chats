@@ -33,8 +33,8 @@ class ChatRoomNamespace(Namespace):
     def on_leave_room(self):
         """Sent by client when it leaves the room. Remove variables from user session, leaves room and sends
         status message for debug."""
-        room_name = session.pop('room_name')
-        user_name = session.pop('user_name')
+        room_name = session.get('room_name')
+        user_name = session.get('user_name')
         leave_room(room_name)
         emit('status', {'message': f'{user_name} left the room'}, room=room_name)
 

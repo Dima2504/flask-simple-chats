@@ -30,6 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function leave_room() {
     socket.emit('leave_room', () => {
         socket.disconnect();
-        window.location.href = '/';
+        window.location.href = '/chats/end';
     });
 }
