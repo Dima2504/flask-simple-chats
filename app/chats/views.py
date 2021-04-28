@@ -31,8 +31,7 @@ class UserChatBegin(MethodView):
         inputted directly, so, it is likely wrong. If it is so, returns page not found.
         :param companion_username: username of user, which the current user wants to talk to"""
         user = g.user
-        if not db.session.query(exists().where(User.username == companion_username)).scalar():
-            abort(404)
+        companion = User.query.filter_by(username=companion_username).first_or_404()
         room_name = None
         try:
             room_name = get_users_unique_room_name(user.username, companion_username)
@@ -40,6 +39,7 @@ class UserChatBegin(MethodView):
             abort(404)
         session['room_name'] = room_name
         session['user_name'] = user.name
+        session['companion_id'] = companion.user_id
         return redirect(url_for('chats.going'))
 
 
@@ -50,6 +50,7 @@ class UserChatEnd(MethodView):
         """Removes information from user session when he leaves the room"""
         session.pop('room_name')
         session.pop('user_name')
+        session.pop('companion_id')
         return redirect(url_for('view.index'))
 
 
@@ -61,7 +62,8 @@ class UsersChatGoing(MethodView):
         If everything is OK, renders chat room template"""
         user_name = session.get('user_name')
         room_name = session.get('room_name')
-        if user_name is None or room_name is None:
+        companion_id = session.get('companion_id')
+        if user_name is None or room_name is None or companion_id is None:
             abort(404)
         return render_template('chats/going.html')
 
