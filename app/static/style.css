@@ -194,7 +194,7 @@ body {
     display: flex;
     justify-content: center;
 }
-
+/*
 .content__buttons {
     display: flex;
     flex-direction: column;
@@ -212,23 +212,76 @@ body {
     border-radius: 10px;
     line-height: 90px;
 }
+*/
+.content__chat{
+    width: 600px;
+}
+.content__usernames{
+    font-size: 14px;
+    display: flex;
+    margin-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 20px;
+    justify-content: space-between;
+}
+.content__messages{
+    font-size: 15px;
+    padding: 14px;
+    width: 100%;
+    background-color: white;
+    height:300px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    overflow-y: scroll;
+}
+.message{
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 5px;
+}
+
+.user_message_text{
+    max-width: 70%;
+    background-color: lightgray;
+    border-radius: 15px;
+    padding: 10px;
+}
+.user_message_time{
+    font-size: 10px;
+    color: darkgray;
+    padding-top: 12px;
+    padding-right: 5px;
+}
+.companion_message_text{
+    max-width: 70%;
+    background-color: darkgray;
+    border-radius: 15px;
+    padding: 10px;
+}
+.companion_message_time{
+    font-size: 10px;
+    color: darkgray;
+    margin-right: auto;
+    padding-top: 12px;
+    padding-left: 5px;
+}
 
 .content__form {
     width: 340px;
     padding-top: 40px;
 }
 
-.password_forgot{
+.addition_clause{
     padding-left: 4px;
     font-size: 15px;
     height: 22px;
     text-align: end;
-
+    cursor: pointer;
 }
-.password_forgot a{
+.addition_clause a{
     color: darkgray;
 }
-.password_forgot a:hover{
+.addition_clause a:hover{
     color: black;
 }
 

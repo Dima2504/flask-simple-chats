@@ -30,16 +30,14 @@ class ChatRoomNamespace(Namespace):
         :type data: dict
         """
         room_name = session.get('room_name')
-        user_name = session.get('user_name')
-        emit('print_message', {'message': data['message'], 'user_name': user_name}, room=room_name)
+        emit('print_message', data, room=room_name)
 
-        m = Message(datetime_writing=datetime.utcfromtimestamp(data['timestamp_seconds']),
+        m = Message(datetime_writing=datetime.utcfromtimestamp(data['timestamp_milliseconds'] / 1000),
                     text=data['message'],
                     sender_id=session.get('current_user_id'),
                     receiver_id=session.get('companion_id'))
         db.session.add(m)
         db.session.commit()
-
 
     def on_leave_room(self):
         """Sent by client when it leaves the room. Remove variables from user session, leaves room and sends

@@ -3,12 +3,17 @@
 {% block content %}
 
     <div class="content__chat">
-        <textarea id="chat" cols="80" rows="20">{% for username, message in last_messages %}{{ username }}: {{ message }}&#10;{% endfor %}</textarea><br><br>
+        <div class="content__usernames">
+            <div class="companion_username">Some person:</div>
+            <div class="user_username">You:</div>
+        </div>
+        <div class="content__messages">
+        </div>
         <form id="send_message_form">
-            <input id="message" size="80" placeholder="Enter your message here" name="message"><br><br>
+            <input id="input_message" placeholder="Enter your message here" name="message">
             <input type="submit">
         </form>
-        <button onclick="leave_room()">Leave room</button>
+        <div class="addition_clause"><a onclick="leave_room()">Leave room</a></div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
             integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
