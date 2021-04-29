@@ -1,8 +1,10 @@
 from .. import socket_io
 from flask import session
+from flask import current_app
 from flask_socketio import emit, join_room, leave_room
 from flask_socketio import Namespace
 from app.chats.models import Message
+from sqlalchemy import desc, or_, and_
 from app import db
 from datetime import datetime
 
@@ -46,6 +48,31 @@ class ChatRoomNamespace(Namespace):
         user_name = session.get('user_name')
         leave_room(room_name)
         emit('status', {'message': f'{user_name} left the room'}, room=room_name)
+
+    def on_get_more_messages(self, data: dict):
+        """
+        Receives from a client offset and limit numbers and return prepared list with messages to load, if user scrolls
+        up. The idea takes after typical ajax requests but here sockets are used.
+        Emits json which contains descending messages from current user and companion's chat with given offset and limit
+        from config. For each message there is an information if the owner is the current user.
+        :param data: json, contains messages_offset number
+        :type data: dict
+        """
+        messages_offset = data['messages_offset']
+        messages_limit = current_app.config['MESSAGES_PER_LOAD_EVENT']
+        current_user_id = session.get('current_user_id')
+        companion_id = session.get('companion_id')
+        last_messages = db.session.query(Message.sender_id, Message.text, Message.datetime_writing).filter(
+            or_(and_(Message.sender_id == current_user_id, Message.receiver_id == companion_id),
+                and_(Message.receiver_id == current_user_id, Message.sender_id == companion_id))).order_by(
+            desc(Message.datetime_writing)).offset(messages_offset).limit(messages_limit).all()
+        result_data = {'messages_number': len(last_messages),
+                       'messages': [{'is_current_user': current_user_id == message[0],
+                                     'message_text': message[1],
+                                     'timestamp_milliseconds': message[2].timestamp() * 1000,
+                                     } for message in last_messages]
+                       }
+        emit('load_more_messages', result_data, broadcast=False)
 
 
 socket_io.on_namespace(ChatRoomNamespace('/chats/going'))

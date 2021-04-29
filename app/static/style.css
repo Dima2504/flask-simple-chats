@@ -245,6 +245,7 @@ body {
     background-color: lightgray;
     border-radius: 15px;
     padding: 10px;
+    word-wrap: break-word;
 }
 .user_message_time{
     font-size: 10px;
@@ -257,6 +258,7 @@ body {
     background-color: darkgray;
     border-radius: 15px;
     padding: 10px;
+    word-wrap: break-word;
 }
 .companion_message_time{
     font-size: 10px;

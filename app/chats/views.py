@@ -2,7 +2,6 @@ from flask.views import MethodView
 from app.authentication.decorators import login_required
 from app import db
 from app.authentication import User
-from app.chats import Message
 from flask import g
 from flask import session
 from flask import render_template
@@ -10,7 +9,6 @@ from flask import abort
 from flask import redirect
 from flask import url_for
 from .utils import get_users_unique_room_name
-from sqlalchemy import or_, and_
 
 
 class UserChatsList(MethodView):
@@ -63,11 +61,10 @@ class UsersChatGoing(MethodView):
         If everything is OK, renders chat room template"""
         user_name = session.get('user_name')
         room_name = session.get('room_name')
-        current_user_id = session.get('current_user_id')
         companion_id = session.get('companion_id')
+        companion_user_name = db.session.query(User.name).filter(User.user_id == companion_id).scalar()
         if user_name is None or room_name is None or companion_id is None:
             abort(404)
 
-        last_messages = db.session.query(User.name, Message.text).filter(User.user_id == Message.sender_id).filter(or_(and_(Message.sender_id == current_user_id, Message.receiver_id == companion_id), and_(Message.receiver_id == current_user_id, Message.sender_id == companion_id)))[:20]
-        return render_template('chats/going.html', last_messages=last_messages)
+        return render_template('chats/going.html', companion_user_name=companion_user_name)
 
