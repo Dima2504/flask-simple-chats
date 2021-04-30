@@ -11,7 +11,8 @@ from datetime import datetime
 
 class ChatRoomNamespace(Namespace):
     def on_connect(self):
-        pass
+        """Returns information about successful connection"""
+        emit('status', {'message': 'connected'}, broadcast=False)
 
     def on_disconnect(self):
         pass
