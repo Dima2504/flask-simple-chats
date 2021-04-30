@@ -12,6 +12,8 @@ migrate = Migrate()
 mail = Mail()
 socket_io = SocketIO()
 
+import app.chats.events
+
 
 def make_app(test_config: object = None) -> Flask:
     """

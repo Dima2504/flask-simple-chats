@@ -3,7 +3,6 @@ from flask import Blueprint
 
 chats = Blueprint('chats', __name__, url_prefix='/chats')
 
-from . import events
 from .models import Message
 from .views import UserChatsList, UserChatBegin, UsersChatGoing, UserChatEnd
 
