@@ -3,6 +3,7 @@ from app import db
 from app import mail
 from app.config import TestConfig
 from app.authentication.models import User
+from app.chats.utils import get_users_unique_room_name
 from flask import session
 from flask import get_flashed_messages
 from sqlalchemy.sql import exists
@@ -114,3 +115,71 @@ class ClientTestCase(unittest.TestCase):
         response = self.test_client.get('/authentication/reset_password/invalid_token')
         self.assertEqual(response.status_code, 404)
         self.assertTrue('<title>Page not found</title>' in response.data.decode())
+
+    def test_user_chat_begin_end(self):
+        with self.test_client as client:
+            client.post('/authentication/register',
+                        data={'email': 'test1@gmail.com', 'username': 'test_user1',
+                              'name': 'Ann1', 'password1': 'Who am I', 'password2': 'Who am I'},
+                        follow_redirects=True)
+            client.post('/authentication/register',
+                        data={'email': 'test2@gmail.com', 'username': 'test_user2',
+                              'name': 'Ann2', 'password1': 'Who am I', 'password2': 'Who am I'},
+                        follow_redirects=True)
+
+            client.post('/authentication/login', data={'email': 'test1@gmail.com', 'password': 'Who am I'},
+                        follow_redirects=True)
+            self.assertEqual(session['current_user_id'], 1)
+            response = client.get('/chats/begin/test_user2')
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(len(session), 4)
+            self.assertEqual(session['room_name'], get_users_unique_room_name('test_user1', 'test_user2'))
+            self.assertEqual(session['user_name'], 'Ann1')
+            self.assertEqual(session['companion_id'], 2)
+
+            response = client.get('/chats/end')
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(len(session), 1)
+            self.assertEqual(session['current_user_id'], 1)
+
+    def test_user_chat_begin_404(self):
+        with self.test_client as client:
+            client.post('/authentication/register',
+                        data={'email': 'test1@gmail.com', 'username': 'test_user1',
+                              'name': 'Ann1', 'password1': 'Who am I', 'password2': 'Who am I'},
+                        follow_redirects=True)
+
+            client.post('/authentication/login', data={'email': 'test1@gmail.com', 'password': 'Who am I'},
+                        follow_redirects=True)
+
+            self.assertEqual(client.get('/chats/begin/test_user1').status_code, 404)
+            self.assertEqual(client.get('/chats/begin/I_do_not_exist').status_code, 404)
+
+    def test_user_chat_going(self):
+        with self.test_client as client:
+            client.post('/authentication/register',
+                        data={'email': 'test1@gmail.com', 'username': 'test_user1',
+                              'name': 'Ann1', 'password1': 'Who am I', 'password2': 'Who am I'},
+                        follow_redirects=True)
+            client.post('/authentication/register',
+                        data={'email': 'test2@gmail.com', 'username': 'test_user2',
+                              'name': 'Ann2', 'password1': 'Who am I', 'password2': 'Who am I'},
+                        follow_redirects=True)
+
+            client.post('/authentication/login', data={'email': 'test1@gmail.com', 'password': 'Who am I'},
+                        follow_redirects=True)
+            response = client.get('/chats/begin/test_user2')
+            self.assertEqual(response.status_code, 302)
+            response = client.get('/chats/going')
+            self.assertEqual(response.status_code, 200)
+
+    def test_user_chat_going_404(self):
+        with self.test_client as client:
+            client.post('/authentication/register',
+                        data={'email': 'test1@gmail.com', 'username': 'test_user1',
+                              'name': 'Ann1', 'password1': 'Who am I', 'password2': 'Who am I'},
+                        follow_redirects=True)
+            client.post('/authentication/login', data={'email': 'test1@gmail.com', 'password': 'Who am I'},
+                        follow_redirects=True)
+            response = client.get('/chats/going')
+            self.assertEqual(response.status_code, 404)
