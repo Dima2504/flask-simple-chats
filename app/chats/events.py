@@ -4,6 +4,7 @@ from flask import current_app
 from flask_socketio import emit, join_room, leave_room
 from flask_socketio import Namespace
 from app.chats.models import Message
+from app.authentication.models import is_chat_between, create_chat
 from sqlalchemy import desc, or_, and_
 from app import db
 from datetime import datetime
@@ -34,12 +35,15 @@ class ChatRoomNamespace(Namespace):
         """
         room_name = session.get('room_name')
         emit('print_message', data, room=room_name)
-
+        current_user_id = session.get('current_user_id')
+        companion_id = session.get('companion_id')
         m = Message(datetime_writing=datetime.utcfromtimestamp(data['timestamp_milliseconds'] / 1000),
                     text=data['message'],
-                    sender_id=session.get('current_user_id'),
-                    receiver_id=session.get('companion_id'))
+                    sender_id=current_user_id,
+                    receiver_id=companion_id)
         db.session.add(m)
+        if not is_chat_between(current_user_id, companion_id):
+            create_chat(current_user_id, companion_id)
         db.session.commit()
 
     def on_leave_room(self):

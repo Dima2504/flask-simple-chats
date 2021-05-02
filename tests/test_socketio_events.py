@@ -3,6 +3,7 @@ from app import socket_io
 from app import db
 from app.config import TestConfig
 from app.chats import Message
+from app.authentication.models import chats, is_chat_between
 import unittest
 import time
 import random
@@ -10,6 +11,7 @@ from datetime import datetime
 from flask.testing import FlaskClient
 from flask_socketio import SocketIOTestClient
 from typing import Tuple
+from sqlalchemy import select
 
 
 class SocketIOEventsTestCase(unittest.TestCase):
@@ -153,6 +155,49 @@ class SocketIOEventsTestCase(unittest.TestCase):
             self.assertEqual(messages[1].datetime_writing, datetime.utcfromtimestamp(second_message_time))
             self.assertEqual(messages[1].sender_id, 2)
             self.assertEqual(messages[1].receiver_id, 1)
+
+    def test_create_chat_in_put_data_event(self):
+        is_chat_between.cache_clear()
+        with self.app.test_client() as client1, self.app.test_client() as client2:
+            self.init_two_clients(client1, client2)
+            socket_io_client1, socket_io_client2 = self.get_socket_io_clients(client1, client2)
+
+            socket_io_client1.emit('enter_room', namespace=self.events_namespace)
+            socket_io_client2.emit('enter_room', namespace=self.events_namespace)
+
+            result = db.session.execute(select(chats))
+            self.assertEqual(len(result.all()), 0)
+            result.close()
+            self.assertFalse(is_chat_between(1, 2))
+            self.assertEqual(is_chat_between.cache_info().currsize, 1)
+
+            socket_io_client1.emit('put_data',
+                                   {'message': 'test_message', 'timestamp_milliseconds': time.time() * 1000},
+                                   namespace=self.events_namespace)
+            self.assertEqual(is_chat_between.cache_info().currsize, 0)
+            result = db.session.execute(select(chats))
+            self.assertEqual(len(result.all()), 2)
+            result.close()
+            self.assertTrue(is_chat_between(1, 2))
+            self.assertTrue(is_chat_between(2, 1))
+            self.assertEqual(is_chat_between.cache_info().currsize, 2)
+            is_chat_between.cache_clear()
+            self.assertTrue(is_chat_between(1, 2))
+            socket_io_client2.emit('put_data',
+                                   {'message': 'test_message2', 'timestamp_milliseconds': time.time() * 1000},
+                                   namespace=self.events_namespace)
+            self.assertEqual(is_chat_between.cache_info().currsize, 2)
+            result = db.session.execute(select(chats))
+            self.assertEqual(len(result.all()), 2)
+            result.close()
+            self.assertTrue(is_chat_between(2, 1))
+            self.assertEqual(is_chat_between.cache_info().currsize, 2)
+
+
+
+
+
+
 
     def test_get_more_messages(self):
         messages_limit = self.app.config['MESSAGES_PER_LOAD_EVENT']
