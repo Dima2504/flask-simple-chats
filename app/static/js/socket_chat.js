@@ -69,29 +69,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-function get_current_user_message_div(message_text, timestamp_milliseconds) {
+function get_message_div(user_type, message_text, timestamp_milliseconds) {
     let div_message = document.createElement('div');
     let div_time = document.createElement('div');
     let div_text = document.createElement('div');
-    div_message.classList.add('message');
-    div_time.classList.add('user_message_time');
-    div_text.classList.add('user_message_text');
     div_time.innerText = new Date(timestamp_milliseconds).toLocaleTimeString();
     div_text.innerText = message_text;
-    div_message.append(div_time, div_text);
-    return div_message;
-}
+    div_message.classList.add('message');
+    if (user_type === 'current_user') {
+        div_time.classList.add('user_message_time');
+        div_text.classList.add('user_message_text');
+        div_message.append(div_time, div_text);
 
-function get_companion_message_div(message_text, timestamp_milliseconds) {
-    let div_message = document.createElement('div');
-    let div_time = document.createElement('div');
-    let div_text = document.createElement('div');
-    div_message.classList.add('message');
-    div_time.classList.add('companion_message_time');
-    div_text.classList.add('companion_message_text');
-    div_time.innerText = new Date(timestamp_milliseconds).toLocaleTimeString();
-    div_text.innerText = message_text;
-    div_message.append(div_text, div_time);
+    } else if (user_type === 'companion') {
+        div_time.classList.add('companion_message_time');
+        div_text.classList.add('companion_message_text');
+        div_message.append(div_text, div_time);
+
+    } else throw new Error('Given user_type is incorrect');
     return div_message;
 }
 
@@ -104,18 +99,18 @@ function leave_room() {
 
 function print_message(data) {
     if (data['uuid'] === current_user_uuid) {
-        messages.append(get_current_user_message_div(data.message, data.timestamp_milliseconds));
+        messages.append(get_message_div('current_user', data.message, data.timestamp_milliseconds));
     } else {
-        messages.append(get_companion_message_div(data.message, data.timestamp_milliseconds));
+        messages.append(get_message_div('companion', data.message, data.timestamp_milliseconds));
     }
 }
 
 function load_more_messages(data) {
     for (let message of data['messages']) {
         if (message['is_current_user']) {
-            messages.prepend(get_current_user_message_div(message['message_text'], message['timestamp_milliseconds']));
+            messages.prepend(get_message_div('current_user', message['message_text'], message['timestamp_milliseconds']));
         } else {
-            messages.prepend(get_companion_message_div(message['message_text'], message['timestamp_milliseconds']));
+            messages.prepend(get_message_div('companion', message['message_text'], message['timestamp_milliseconds']));
         }
     }
 }
