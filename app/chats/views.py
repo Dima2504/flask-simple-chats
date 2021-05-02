@@ -2,6 +2,7 @@ from flask.views import MethodView
 from app.authentication.decorators import login_required
 from app import db
 from app.authentication import User
+from app.authentication.models import chats
 from flask import g
 from flask import session
 from flask import render_template
@@ -17,8 +18,11 @@ class UserChatsList(MethodView):
     def get(self):
         """Return list of chats the current user has started"""
         user = g.user
-        companions = user.chats
-        return render_template('chats/list.html', user_companions=companions)
+        user_companions_usernames = db.session.query(User.username, User.name).join(chats,
+                                                                                    chats.c.user2_id == User.user_id).filter(
+            chats.c.user1_id == user.user_id).all()
+
+        return render_template('chats/list.html', user_companions_usernames=user_companions_usernames)
 
 
 class UserChatBegin(MethodView):
@@ -67,4 +71,3 @@ class UsersChatGoing(MethodView):
             abort(404)
 
         return render_template('chats/going.html', companion_user_name=companion_user_name)
-

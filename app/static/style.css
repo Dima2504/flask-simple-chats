@@ -213,6 +213,27 @@ body {
     line-height: 90px;
 }
 */
+.content__chats_list{
+    width: 450px;
+}
+.content__chats_list h1{
+    margin-bottom: 15px;
+}
+.content__user_chat_link{
+    font-size: 17px;
+    padding: 6px;
+    width: 100%;
+    border-radius: 5px;
+    background-color: white;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+.content__user_chat_link:hover{
+    color: white;
+    background-color: dimgray;
+    transition-duration: 0.5s;
+}
+
 .content__chat{
     width: 600px;
 }

@@ -1,12 +1,18 @@
 {% extends 'base.html' %}
 {% block title %}Chats list{% endblock %}
 {% block content %}
-    <div class="content__list">
-        <h1>Chats list for user: {{ user.username }}</h1>
-        <ul>
-            {% for companion in user_companions %}
-                <li>{{ companion.username }}</li>
-            {% endfor %}
-        </ul>
+    <div class="content__chats_list">
+        {% if user_companions_usernames %}
+            <h1>Continue your chat with:</h1>
+            <ul>
+                {% for companion_username in user_companions_usernames %}
+                    <li><a href="{{ url_for('chats.begin', companion_username=companion_username.0) }}">
+                        <div class="content__user_chat_link">{{ companion_username.1|capitalize }}</div>
+                    </a></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <h1>You have not begun any chats yet.</h1>
+        {% endif %}
     </div>
 {% endblock %}
