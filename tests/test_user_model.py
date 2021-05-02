@@ -143,6 +143,7 @@ class UserModelTestCase(unittest.TestCase):
         result.close()
 
     def test_create_delete_chat_directly(self):
+        is_chat_between.cache_clear()
         user1 = User(email='user1@gmail.com', username='user1', password_hash='123')
         user2 = User(email='user2@gmail.com', username='user2', password_hash='123')
         db.session.add_all([user1, user2, ])

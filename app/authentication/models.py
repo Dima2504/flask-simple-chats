@@ -6,6 +6,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer
 from flask import current_app
 from app.authentication.email import send_mail
 from sqlalchemy import and_, or_, exists
+from functools import lru_cache
 
 chats = db.Table('chats',
                  db.Column('user1_id', db.Integer, db.ForeignKey('users.user_id')),
@@ -20,6 +21,7 @@ def create_chat(user1_id: int, user2_id: int):
     :param user2_id: second user's id to check"""
     db.session.execute(chats.insert(
         values=[{'user1_id': user1_id, 'user2_id': user2_id}, {'user1_id': user2_id, 'user2_id': user1_id}]))
+    is_chat_between.cache_clear()
 
 
 def delete_chat(user1_id: int, user2_id: int):
@@ -28,8 +30,10 @@ def delete_chat(user1_id: int, user2_id: int):
     :param user2_id: second user's id to check"""
     db.session.execute(chats.delete().where(or_(and_(chats.c.user1_id == user1_id, chats.c.user2_id == user2_id),
                                                 and_(chats.c.user1_id == user2_id, chats.c.user2_id == user1_id))))
+    is_chat_between.cache_clear()
 
 
+@lru_cache(maxsize=256)
 def is_chat_between(user1_id: int, user2_id: int) -> bool:
     """Check if two users have chat together. Works like User.is_chat, but gets information straight from chats table
     :param user1_id: first user's id to check
@@ -113,12 +117,14 @@ class User(db.Model):
         if user not in self.chats:
             self.chats.append(user)
             user.chats.append(self)
+        is_chat_between.cache_clear()
 
     def delete_chat(self, user: 'User') -> None:
         """Delete chat connection between self and given users. Works bidirectionally like a method above"""
         if user in self.chats:
             self.chats.remove(user)
             user.chats.remove(self)
+        is_chat_between.cache_clear()
 
     def is_chat(self, user: 'User') -> bool:
         """Checks is the current user and a given user have chat together"""
