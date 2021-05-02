@@ -4,6 +4,7 @@ from app import db
 from app import mail
 from app.config import TestConfig
 from app.authentication import User
+from app.authentication.models import create_chat, delete_chat, is_chat_between
 from app.authentication.exceptions import UserNotFoundByIndexError
 from app.authentication.models import chats
 from sqlalchemy.sql import select
@@ -110,6 +111,9 @@ class UserModelTestCase(unittest.TestCase):
         db.session.add_all([user1, user2, ])
         db.session.commit()
 
+        self.assertEqual(len(user1.chats), 0)
+        self.assertEqual(len(user2.chats), 0)
+
         self.assertFalse(user1.is_chat(user2))
         self.assertFalse(user2.is_chat(user1))
         user1.create_chat(user2)
@@ -119,14 +123,59 @@ class UserModelTestCase(unittest.TestCase):
         result = db.session.execute(select(chats))
         self.assertEqual(len(result.all()), 2)
         result.close()
+        self.assertEqual(len(user1.chats), 1)
+        self.assertEqual(len(user2.chats), 1)
 
         self.assertTrue(user1.is_chat(user2))
         self.assertTrue(user2.is_chat(user1))
         user2.delete_chat(user1)
+        db.session.add(user2)
+        db.session.commit()
+
+        self.assertEqual(len(user1.chats), 0)
+        self.assertEqual(len(user2.chats), 0)
+
         self.assertFalse(user1.is_chat(user2))
         self.assertFalse(user2.is_chat(user1))
 
+        result = db.session.execute(select(chats))
+        self.assertEqual(len(result.all()), 0)
+        result.close()
 
+    def test_create_delete_chat_directly(self):
+        user1 = User(email='user1@gmail.com', username='user1', password_hash='123')
+        user2 = User(email='user2@gmail.com', username='user2', password_hash='123')
+        db.session.add_all([user1, user2, ])
+        db.session.commit()
+
+        self.assertEqual(len(user1.chats), 0)
+        self.assertEqual(len(user2.chats), 0)
+
+        self.assertFalse(is_chat_between(1, 2))
+        self.assertFalse(is_chat_between(2, 1))
+        create_chat(1, 2)
+        db.session.commit()
+
+        result = db.session.execute(select(chats))
+        self.assertEqual(len(result.all()), 2)
+        result.close()
+
+        self.assertEqual(len(user1.chats), 1)
+        self.assertEqual(len(user2.chats), 1)
+
+        self.assertTrue(is_chat_between(1, 2))
+        self.assertTrue(is_chat_between(2, 1))
+        delete_chat(2, 1)
+        db.session.commit()
+
+        self.assertEqual(len(user1.chats), 0)
+        self.assertEqual(len(user2.chats), 0)
+        self.assertFalse(is_chat_between(1, 2))
+        self.assertFalse(is_chat_between(2, 1))
+
+        result = db.session.execute(select(chats))
+        self.assertEqual(len(result.all()), 0)
+        result.close()
 
 
 

@@ -5,11 +5,39 @@ from app.authentication.exceptions import UserNotFoundByIndexError
 from itsdangerous import TimedJSONWebSignatureSerializer
 from flask import current_app
 from app.authentication.email import send_mail
+from sqlalchemy import and_, or_, exists
 
 chats = db.Table('chats',
                  db.Column('user1_id', db.Integer, db.ForeignKey('users.user_id')),
                  db.Column('user2_id', db.Integer, db.ForeignKey('users.user_id')),
                  db.PrimaryKeyConstraint('user1_id', 'user2_id'))
+
+
+def create_chat(user1_id: int, user2_id: int):
+    """Works like User.create_chat, but makes it directly, without sqlalchemy relationships abstraction, it must be
+    faster. db.session must be committed after executing the function to save changes
+    :param user1_id: first user's id to check
+    :param user2_id: second user's id to check"""
+    db.session.execute(chats.insert(
+        values=[{'user1_id': user1_id, 'user2_id': user2_id}, {'user1_id': user2_id, 'user2_id': user1_id}]))
+
+
+def delete_chat(user1_id: int, user2_id: int):
+    """Works like User.delete_chat, but makes it directly, without sqlalchemy relationships abstraction.
+    :param user1_id: first user's id to check
+    :param user2_id: second user's id to check"""
+    db.session.execute(chats.delete().where(or_(and_(chats.c.user1_id == user1_id, chats.c.user2_id == user2_id),
+                                                and_(chats.c.user1_id == user2_id, chats.c.user2_id == user1_id))))
+
+
+def is_chat_between(user1_id: int, user2_id: int) -> bool:
+    """Check if two users have chat together. Works like User.is_chat, but gets information straight from chats table
+    :param user1_id: first user's id to check
+    :param user2_id: second user's id to check
+    :returns boolean value: if it is true, users have already had chat together, if it is false - they have not had"""
+    return db.session.query(exists(chats).where(or_(and_(chats.c.user1_id == user1_id, chats.c.user2_id == user2_id),
+                                                    and_(chats.c.user1_id == user2_id,
+                                                         chats.c.user2_id == user1_id)))).scalar()
 
 
 class User(db.Model):
