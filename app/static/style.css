@@ -221,12 +221,20 @@ body {
 }
 .content__user_chat_link{
     font-size: 17px;
-    padding: 6px;
     width: 100%;
+    padding: 5px;
     border-radius: 5px;
     background-color: white;
     margin-bottom: 10px;
     cursor: pointer;
+}
+.user_chat_link_name{
+    margin-bottom: 2px;
+}
+.user_chat_link_last_message{
+    font-size: 14px;
+    color: grey;
+    overflow: hidden;
 }
 .content__user_chat_link:hover{
     color: white;

@@ -2,7 +2,7 @@ from flask.views import MethodView
 from app.authentication.decorators import login_required
 from app import db
 from app.authentication import User
-from app.authentication.models import chats
+from app.chats import Message
 from flask import g
 from flask import session
 from flask import render_template
@@ -10,19 +10,19 @@ from flask import abort
 from flask import redirect
 from flask import url_for
 from .utils import get_users_unique_room_name
+from .utils import get_user_chats_and_last_messages
+from sqlalchemy import desc, func, or_, case
 
 
 class UserChatsList(MethodView):
     decorators = [login_required, ]
 
     def get(self):
-        """Return list of chats the current user has started"""
+        """Return list of chats the current user has started and their last messages. The list is sorted by last
+        message time writing."""
         user = g.user
-        user_companions_usernames = db.session.query(User.username, User.name).join(chats,
-                                                                                    chats.c.user2_id == User.user_id).filter(
-            chats.c.user1_id == user.user_id).all()
-
-        return render_template('chats/list.html', user_companions_usernames=user_companions_usernames)
+        users_last_chats_info = get_user_chats_and_last_messages(user.user_id).all()
+        return render_template('chats/list.html', users_last_chats_info=users_last_chats_info)
 
 
 class UserChatBegin(MethodView):
