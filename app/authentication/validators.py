@@ -6,7 +6,9 @@ from flask import current_app
 
 def validate_equal_passwords(password1: str, password2: str):
     """Compares two passwords and raises validation error if aren't equal"""
-    if not password1 == password2:
+    if len(password1) != len(password2):
+        raise ValidationError("Given passwords don't match")
+    elif not password1 == password2:
         raise ValidationError("Given passwords don't match")
 
 
@@ -25,4 +27,4 @@ def validate_password_length(password: str, min_length: int = None):
     if not min_length:
         min_length = current_app.config['REQUIRED_MIN_PASSWORD_LENGTH']
     if len(password) < min_length:
-        raise ValidationError("Password if too short")
+        raise ValidationError("Password is too short")
