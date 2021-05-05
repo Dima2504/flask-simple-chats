@@ -1,5 +1,5 @@
 import functools
-from sqlalchemy import or_, desc, case, func
+from sqlalchemy import or_, desc, case, func, and_
 from app.authentication.models import User
 from app.chats.models import Message
 from app import db
@@ -53,4 +53,32 @@ def get_user_chats_and_last_messages(user_id: int) -> BaseQuery:
         subquery,
         Message.datetime_writing == subquery.c.max_datetime).join(User, User.user_id == case_stmt).order_by(
         desc(Message.datetime_writing))
+    return result
+
+
+def search_for_users_by(search_string: str, current_user_id: int = None) -> BaseQuery:
+    """
+    Conducts a search for users. The given string is compared with all users' names and usernames.
+    If there are some matches, users will be returned. If a search string contains whitespaces, it will be split by them
+    and the search will be conducted with each output divided string.
+    If 'current_user_id' is also given, this user is expected to be a searcher,
+    so he will be excluded from the final result.
+    :param search_string: a string to search with
+    :type search_string: str
+    :param current_user_id: user's id to exclude
+    :type current_user_id: int
+    :return: BaseQuery instance, so it needs to be executed after.
+    :rtype: BaseQuery
+    """
+    search_strings = search_string.strip().split()
+    or_params = []
+    for search_string in search_strings:
+        or_params.append(User.name.ilike(f'%{search_string}%'))
+        or_params.append(User.username.ilike(f'%{search_string}%'))
+    or_stmt = or_(*or_params)
+    if not current_user_id:
+        result = db.session.query(User.name, User.username).where(or_stmt).order_by(desc(User.data_joined))
+    else:
+        result = db.session.query(User.name, User.username).where(
+            and_(or_stmt, User.user_id != current_user_id)).order_by(desc(User.data_joined))
     return result

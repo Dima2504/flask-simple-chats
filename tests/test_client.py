@@ -209,3 +209,35 @@ class ClientTestCase(unittest.TestCase):
                         follow_redirects=True)
             response = client.get('/chats/going')
             self.assertEqual(response.status_code, 404)
+
+    def test_ajax_search(self):
+        with self.test_client as client:
+            client.post('/authentication/register',
+                        data={'email': 'test1@gmail.com', 'username': 'test_user1',
+                              'name': 'Ann1', 'password1': 'Who am I', 'password2': 'Who am I'},
+                        follow_redirects=True)
+            client.post('/authentication/register',
+                        data={'email': 'test2@gmail.com', 'username': 'test_user2',
+                              'name': 'Ann2', 'password1': 'Who am I', 'password2': 'Who am I'},
+                        follow_redirects=True)
+
+            client.post('/authentication/login', data={'email': 'test1@gmail.com', 'password': 'Who am I'},
+                        follow_redirects=True)
+
+            response = client.get('/chats/ajax-search')
+            self.assertEqual(response.status_code, 404)
+            response = client.get('/chats/ajax-search?search-string=test')
+            self.assertEqual(response.status_code, 404)
+
+            headers = {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+            response = client.get('/chats/ajax-search?search-string=test', headers=headers)
+            self.assertEqual(response.status_code, 200)
+            json = response.json
+            self.assertEqual(json['data'], [{'name': 'Ann2', 'username': 'test_user2'}])
+
+            response = client.get('/chats/ajax-search?search-string=strange_string', headers=headers)
+            self.assertEqual(response.status_code, 200)
+            json = response.json
+            self.assertEqual(json['data'], [])

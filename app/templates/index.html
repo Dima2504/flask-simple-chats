@@ -1,5 +1,10 @@
 {% extends 'base.html' %}
 {% block title %}Simple chats{% endblock %}
 {% block content %}
-    <h1>Index page</h1>
+    <div class="content__main">
+        <div class="content__buttons">
+            <div onclick="document.location = '{{ url_for('chats.search') }}'" class="content__button">Begin simple chat</div>
+{#            <div class="content__button">Begin encrypted chat</div>#}
+        </div>
+    </div>
 {% endblock %}

@@ -4,13 +4,16 @@ from app import db
 from app.config import TestConfig
 from app.chats.utils import get_users_unique_room_name as get_rn
 from app.chats.utils import get_user_chats_and_last_messages as get_uc
+from app.chats.utils import search_for_users_by
 from app.authentication.models import User
 from app.chats.models import Message
 import os
+from datetime import datetime
 
 
 class UtilsTestCase(unittest.TestCase):
     """Tries out additional utils"""
+
     def setUp(self) -> None:
         get_rn.cache_clear()
         self.app = make_app(TestConfig)
@@ -95,3 +98,35 @@ class UtilsTestCase(unittest.TestCase):
         chats5 = get_uc(5).all()
         self.assertEqual(len(chats5), 0)
 
+    def test_search_for_users_by(self):
+        user1 = User(email='user1@gmail.com', username='pasha', name="Pavlo Vasyliovych", password_hash='123',
+                     data_joined=datetime.now())
+        user2 = User(email='user2@gmail.com', username='dima', name="Dmitry Andreevich", password_hash='123',
+                     data_joined=datetime.now())
+        user3 = User(email='user3@gmail.com', username='maks', name="Maxim Ruslanovich", password_hash='123',
+                     data_joined=datetime.now())
+        user4 = User(email='user4@gmail.com', username='ann', name="Anna Alekseevna", password_hash='123',
+                     data_joined=datetime.now())
+        db.session.add_all([user1, user2, user3, user4])
+        db.session.commit()
+        self.assertEqual(len(search_for_users_by('').all()), 4)
+        self.assertEqual(len(search_for_users_by('a').all()), 4)
+        result1 = search_for_users_by('a', 2).all()
+        self.assertEqual(len(result1), 3)
+        for r in result1:
+            self.assertNotEqual('dima', r[1])
+
+        self.assertEqual(len(search_for_users_by('dima').all()), 1)
+        self.assertEqual(len(search_for_users_by('dima', 1).all()), 1)
+        self.assertEqual(len(search_for_users_by('dima', 2).all()), 0)
+        self.assertEqual(len(search_for_users_by('ann', 4).all()), 0)
+
+        result2 = search_for_users_by('dima Pavlo').all()
+        self.assertEqual(len(result2), 2)
+        self.assertEqual(result2[0][0], 'Dmitry Andreevich')
+        self.assertEqual(result2[1][0], 'Pavlo Vasyliovych')
+
+        result3 = search_for_users_by('ich').all()
+        self.assertEqual(len(result3), 2)
+        self.assertEqual(result3[0][0], 'Maxim Ruslanovich')
+        self.assertEqual(result3[1][0], 'Dmitry Andreevich')

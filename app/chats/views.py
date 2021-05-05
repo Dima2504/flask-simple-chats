@@ -1,3 +1,5 @@
+from app.chats import chats as chats_bp
+from app.chats.utils import search_for_users_by
 from flask.views import MethodView
 from app.authentication.decorators import login_required
 from app import db
@@ -10,8 +12,36 @@ from flask import abort
 from flask import redirect
 from flask import url_for
 from flask import request
+from flask import jsonify
 from .utils import get_users_unique_room_name
 from .utils import get_user_chats_and_last_messages
+
+
+class UserSearchForChat(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        return render_template('chats/search.html')
+
+
+@chats_bp.route('/ajax-search', methods=['GET'])
+@login_required
+def ajax_search():
+    """
+    The route is used when a certain user searches for the companion. It receives only ajax requests and returns list of
+    dicts dumped in json format. Each dict represent information about one potential recipient. A string for searching
+    is taken from requests url parameter: 'search-string'.
+    If the request is not ajax, 404 error is raised.
+    """
+    x_requested_with = request.headers.get('X-Requested-With', default='')
+    if x_requested_with != 'XMLHttpRequest':
+        abort(404, description='Allowed only for ajax')
+
+    current_user_id = g.user.user_id
+    search_string = request.args.get('search-string', default='')
+    result_data = search_for_users_by(search_string, current_user_id=current_user_id).all()
+    result_data = [row._asdict() for row in result_data]
+    return jsonify(data=result_data)
 
 
 class UserChatsList(MethodView):

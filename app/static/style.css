@@ -195,32 +195,60 @@ body {
     display: flex;
     justify-content: center;
 }
-/*
-.content__buttons {
+
+
+.content__main {
+    width: 450px;
+    padding-top: 20px;
+
+}
+.content__buttons{
     display: flex;
     flex-direction: column;
-    justify-content: space-evenly;
-    width: 400px;
-    height: 70%;
+    align-items: center;
+}
+.content__button{
+    width: 60%;
+    background-color: grey;
+    height: 70px;
+    border-radius: 20px;
+    text-align: center;
+    line-height: 70px;
+    cursor: pointer;
+    margin-bottom: 15px;
+}
+.content__button:hover{
+    background-color: dimgray;
+    transition-duration: 0.5s;
 }
 
-.button {
-    font-size: 21px;
-    text-align: center;
-    height: 90px;
-    width: 100%;
-    background-color: gray;
-    border-radius: 10px;
-    line-height: 90px;
+.content__search{
+    width: 450px;
 }
-*/
+.content__search h1{
+    margin-bottom: 15px;
+    line-height: 20px;
+    text-align: center;
+}
+
+.edge{
+    width: 100%;
+    height: 1px;
+    background-color: black;
+    opacity: 0;
+}
+
+.content__searched_users{
+    margin-top: 20px;
+    width: 100%;
+}
+
 .content__chats{
     width: 450px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
-
 .content__list h1{
     margin-bottom: 15px;
 }
@@ -236,7 +264,8 @@ body {
 .user_chat_link_name{
     margin-bottom: 2px;
 }
-.user_chat_link_last_message{
+
+.user_chat_link_last_message, .user_chat_link_username{
     font-size: 14px;
     color: grey;
     overflow: hidden;
