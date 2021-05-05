@@ -1,18 +1,44 @@
 {% extends 'base.html' %}
 {% block title %}Chats list{% endblock %}
 {% block content %}
-    <div class="content__chats_list">
-        {% if users_last_chats_info %}
-            <h1>Continue your chat with:</h1>
-            <ul>
-            {% for user_last_chat_info in users_last_chats_info %}
-                    <li><a href="{{ url_for('chats.begin', companion_username=user_last_chat_info.0) }}">
-                        <div class="content__user_chat_link"><div class="user_chat_link_name">{{ user_last_chat_info.1 }}</div><div class="user_chat_link_last_message">{{ user_last_chat_info.2 }}</div></div>
-                    </a></li>
-            {% endfor %}
-            </ul>
-        {% else %}
-            <h1>You have not begun any chats yet.</h1>
-        {% endif %}
+    <div class="content__chats">
+        <div class="content__list">
+            {% if users_last_chats_info %}
+                <h1>Continue your chat with:</h1>
+                <ul>
+                    {% for user_last_chat_info in users_last_chats_info %}
+                        <li><a href="{{ url_for('chats.begin', companion_username=user_last_chat_info.0) }}">
+                            <div class="content__user_chat_link">
+                                <div class="user_chat_link_name">{{ user_last_chat_info.1 }}</div>
+                                <div class="user_chat_link_last_message">{{ user_last_chat_info.2 }}</div>
+                            </div>
+                        </a></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <h1>You have not begun any chats yet.</h1>
+            {% endif %}
+        </div>
+        <div class="content__pages">
+            <div class="content_pages_items">
+                {% if paginator.has_prev %}
+                    <a href="{{ url_for('chats.list', page_num=paginator.prev_num) }}">
+                        <div class="prev_page">Prev page</div>
+                    </a>
+                {% else %}
+                    <div class="prev_page page_unavailable">Prev page</div>
+                {% endif %}
+                <div class="current_page">{{ paginator.page }}</div>
+                {% if paginator.has_next %}
+                    <a href="{{ url_for('chats.list', page_num=paginator.next_num) }}">
+                        <div class="next_page">Next page</div>
+                    </a>
+
+                {% else %}
+                    <div class="next_page page_unavailable">Next page</div>
+
+                {% endif %}
+            </div>
+        </div>
     </div>
 {% endblock %}

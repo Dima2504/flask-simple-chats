@@ -190,7 +190,8 @@ body {
 }
 
 .content__article {
-    height: 100%;
+    /*Here was "height: 100%;", but it causes a trouble with a pages nav bar*/
+    min-height: 500px;
     display: flex;
     justify-content: center;
 }
@@ -213,10 +214,14 @@ body {
     line-height: 90px;
 }
 */
-.content__chats_list{
+.content__chats{
     width: 450px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
-.content__chats_list h1{
+
+.content__list h1{
     margin-bottom: 15px;
 }
 .content__user_chat_link{
@@ -241,6 +246,47 @@ body {
     background-color: dimgray;
     transition-duration: 0.5s;
 }
+
+
+.content__pages{
+    width: 100%;
+    height: 30px;
+    display: flex;
+    justify-content: flex-end;
+}
+.content_pages_items{
+    display: flex;
+}
+.prev_page{
+    background-color: darkgray;
+    text-align: center;
+    border-radius: 5px 0 0 5px;
+    padding: 5px;
+}
+.current_page{
+    height: 100%;
+    width: 30px;
+    background-color: darkgray;
+    text-align: center;
+    margin: 0 5px;
+    padding: 5px;
+}
+.next_page{
+    background-color: darkgray;
+    text-align: center;
+    border-radius: 0 5px 5px 0;
+    padding: 5px;
+}
+.prev_page:hover, .next_page:hover{
+    background-color: grey;
+    transition-duration: 0.5s;
+}
+.page_unavailable{
+    pointer-events: none;
+    background-color: lightgray;
+    color: darkgray;
+}
+
 
 .content__chat{
     width: 600px;

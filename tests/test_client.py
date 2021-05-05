@@ -3,6 +3,7 @@ from app import db
 from app import mail
 from app.config import TestConfig
 from app.authentication.models import User
+from app.chats.models import Message
 from app.chats.utils import get_users_unique_room_name
 from flask import session
 from flask import get_flashed_messages
@@ -115,6 +116,31 @@ class ClientTestCase(unittest.TestCase):
         response = self.test_client.get('/authentication/reset_password/invalid_token')
         self.assertEqual(response.status_code, 404)
         self.assertTrue('<title>Page not found</title>' in response.data.decode())
+
+    def test_user_chats_list(self):
+        with self.test_client as client:
+            client.post('/authentication/register',
+                        data={'email': 'test1@gmail.com', 'username': 'test_user1',
+                              'name': 'Ann1', 'password1': 'Who am I', 'password2': 'Who am I'},
+                        follow_redirects=True)
+            client.post('/authentication/register',
+                        data={'email': 'test2@gmail.com', 'username': 'test_user2',
+                              'name': 'Ann2', 'password1': 'Who am I', 'password2': 'Who am I'},
+                        follow_redirects=True)
+
+            client.post('/authentication/login', data={'email': 'test1@gmail.com', 'password': 'Who am I'},
+                        follow_redirects=True)
+
+            User.create_chat(1, 2)
+            db.session.add(Message(text='test_text', sender_id=1, receiver_id=2))
+            db.session.commit()
+            response = client.get('/chats/list')
+            self.assertEqual(response.status_code, 200)
+            response_data = response.data.decode()
+            self.assertTrue('<title>Chats list</title>' in response_data)
+            self.assertTrue('test_text' in response_data)
+            self.assertTrue('Ann2' in response_data)
+            self.assertTrue('test_user2' in response_data)
 
     def test_user_chat_begin_end(self):
         with self.test_client as client:

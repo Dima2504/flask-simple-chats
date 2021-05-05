@@ -10,6 +10,8 @@ from datetime import datetime
 
 class MessageModelTestCase(unittest.TestCase):
     def setUp(self) -> None:
+        User.is_chat_between.cache_clear()
+        User.get_chat_id_by_users_ids.cache_clear()
         self.app = make_app(TestConfig)
         self.app_context = self.app.app_context()
         self.app_context.push()
@@ -19,6 +21,8 @@ class MessageModelTestCase(unittest.TestCase):
         db.session.remove()
         db.drop_all()
         self.app_context.pop()
+        User.is_chat_between.cache_clear()
+        User.get_chat_id_by_users_ids.cache_clear()
 
     def test_message_init(self):
         user1 = User(email='user1@gmail.com', username='user1', password_hash='123')

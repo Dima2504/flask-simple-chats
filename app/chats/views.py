@@ -2,27 +2,30 @@ from flask.views import MethodView
 from app.authentication.decorators import login_required
 from app import db
 from app.authentication import User
-from app.chats import Message
+from flask import current_app
 from flask import g
 from flask import session
 from flask import render_template
 from flask import abort
 from flask import redirect
 from flask import url_for
+from flask import request
 from .utils import get_users_unique_room_name
 from .utils import get_user_chats_and_last_messages
-from sqlalchemy import desc, func, or_, case
 
 
 class UserChatsList(MethodView):
     decorators = [login_required, ]
 
-    def get(self):
+    def get(self) -> str:
         """Return list of chats the current user has started and their last messages. The list is sorted by last
-        message time writing."""
+        message time writing. Uses paginator to represent chats using pages."""
         user = g.user
-        users_last_chats_info = get_user_chats_and_last_messages(user.user_id).all()
-        return render_template('chats/list.html', users_last_chats_info=users_last_chats_info)
+        current_page_num = request.args.get('page_num', default=1, type=int)
+        chats_per_page = current_app.config['CHATS_PER_PAGE']
+        paginator = get_user_chats_and_last_messages(user.user_id).paginate(current_page_num, chats_per_page, error_out=False)
+        users_last_chats_info = paginator.items
+        return render_template('chats/list.html', users_last_chats_info=users_last_chats_info, paginator=paginator)
 
 
 class UserChatBegin(MethodView):
