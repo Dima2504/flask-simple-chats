@@ -4,6 +4,7 @@ from app import make_app
 from app.config import TestConfig
 from app.authentication.exceptions import ValidationError
 from app.authentication.validators import validate_password_length, validate_equal_passwords, validate_email
+from app.authentication.validators import validate_length
 import os
 
 
@@ -23,10 +24,9 @@ class ValidatorsTestCase(unittest.TestCase):
         cls.app_context.pop()
 
     def test_validate_equal_passwords(self):
-        with self.assertRaises(ValidationError):
-            for _ in range(3):
+        for _ in range(3):
+            with self.assertRaises(ValidationError):
                 validate_equal_passwords(os.urandom(10).decode('latin1'), os.urandom(10).decode('latin1'))
-
         try:
             validate_equal_passwords('am i strong?', 'am i strong?')
             validate_equal_passwords('just simple test', 'just simple test')
@@ -37,8 +37,8 @@ class ValidatorsTestCase(unittest.TestCase):
     def test_validate_password_length_without_default_value(self):
         """Randint generate integer including both end points, so, it is necessary to subtract one from
         :attr:`min_password_length`"""
-        with self.assertRaises(ValidationError):
-            for _ in range(3):
+        for _ in range(3):
+            with self.assertRaises(ValidationError):
                 test_password = os.urandom(random.randint(0, self.min_password_length-1)).decode('latin1')
                 validate_password_length(test_password)
         try:
@@ -49,8 +49,8 @@ class ValidatorsTestCase(unittest.TestCase):
             self.fail('ValidationError must not have been raised')
 
     def test_validate_password_length_with_default_value(self):
-        with self.assertRaises(ValidationError):
-            for _ in range(3):
+        for _ in range(3):
+            with self.assertRaises(ValidationError):
                 min_length = random.randint(1, 20)
                 test_password = os.urandom(random.randint(0, min_length-1)).decode('latin1')
                 validate_password_length(test_password, min_length)
@@ -64,16 +64,40 @@ class ValidatorsTestCase(unittest.TestCase):
 
     def test_validate_email(self):
         valid_emails = ['dprice@msn.com', 'staikos@optonline.net', 'psharpe@mac.com', 'andale@yahoo.com', 'magusnet@icloud.com', 'hillct@verizon.net', 'dunstan@att.net', 'tmccarth@sbcglobal.net', ]
-        invalid_emails = ["", "  ", "foo", "bar.dk", "foo@", "@bar.dk", "foo@bar", "foo@bar.ab12", "foo@.bar.ab", "foo.@bar.co", "foo@foo@bar.co", "fo o@bar.co", "foo@bar.dk", "123@bar.dk", "foo@456.dk", "foo@bar456.info", "foo@bücher.中国"]
-        with self.assertRaises(ValidationError):
-            for email in invalid_emails:
+        invalid_emails = ["", "  ", "foo", "bar.dk", "foo@", "@bar.dk", "foo@bar", "foo@bar.ab12", "foo@.bar.ab", "foo.@bar.co", "foo@foo@bar.co", "fo o@bar.co", "foo@bar.dk", "123@bar.dk", "foo@456. dk", "f oo@bar456.info", "fvoo@bücher .中国"]
+        for email in invalid_emails:
+            with self.assertRaises(ValidationError):
                 validate_email(email)
-
         try:
             for email in valid_emails:
                 validate_email(email)
         except ValidationError:
             self.fail('ValidationError must not have been raised')
+
+    def test_validate_length(self):
+        with self.assertRaises(ValidationError):
+            validate_length('test', 5, 6)
+        with self.assertRaises(ValidationError):
+            validate_length('test', 2, 3)
+        with self.assertRaises(ValidationError):
+            validate_length('test', 7, 9)
+        with self.assertRaises(ValidationError):
+            validate_length('test', 1, 2)
+        try:
+            validate_length('test', 4, 5)
+            validate_length('test', 2, 4)
+            validate_length('test', 4, 4)
+        except ValidationError:
+            self.fail('ValidationError must not have been raised')
+        try:
+            validate_length('t', 3, 4)
+        except ValidationError as e:
+            self.assertEqual(e.message, 'The given string is not match the necessary length')
+        error_message = 'I am stupid error'
+        try:
+            validate_length('t', 3, 4, error_message)
+        except ValidationError as e:
+            self.assertEqual(e.message, error_message)
 
     def test_validation_error(self):
         error = ValidationError('Test case')

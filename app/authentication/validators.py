@@ -28,3 +28,19 @@ def validate_password_length(password: str, min_length: int = None):
         min_length = current_app.config['REQUIRED_MIN_PASSWORD_LENGTH']
     if len(password) < min_length:
         raise ValidationError("Password is too short")
+
+
+def validate_length(string: str, min_length: int, max_length: int, error_message: str = None):
+    """
+    Validates if the given string length is between the obligatory edges
+    :param string: string to check
+    :type string: str
+    :param min_length: minimal possible length
+    :type min_length: int
+    :param max_length: maximal possible length
+    :type max_length: int
+    :param error_message: message to be shown if the validations fails
+    :type error_message: str
+    """
+    if not (min_length <= len(string) <= max_length):
+        raise ValidationError(error_message or 'The given string is not match the necessary length')

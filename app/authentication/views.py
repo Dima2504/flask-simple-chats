@@ -11,6 +11,7 @@ from flask import abort
 from flask.views import MethodView
 from app.authentication.decorators import anonymous_required
 from app.authentication.validators import validate_equal_passwords, validate_email, validate_password_length
+from app.authentication.validators import validate_length
 from app.authentication.exceptions import ValidationError
 from itsdangerous.exc import SignatureExpired, BadSignature
 
@@ -70,6 +71,7 @@ class RegisterView(MethodView):
         password2 = request.form['password2']
         try:
             validate_email(email)
+            validate_length(name, 3, 25, error_message='Please, input name with a length between 4 and 25 chars')
             validate_equal_passwords(password1, password2)
             validate_password_length(password2)
         except ValidationError as e:
