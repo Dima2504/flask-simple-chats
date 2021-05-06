@@ -3,6 +3,7 @@ from flask import g
 from flask import redirect
 from flask import url_for
 from flask import flash
+from flask import request
 
 
 def login_required(func):
@@ -11,7 +12,7 @@ def login_required(func):
     def wrapper(*args, **kwargs):
         if g.user is None:
             flash('You have to log in first')
-            return redirect(url_for('authentication.login'))
+            return redirect(url_for('authentication.login', next=url_for(request.endpoint)))
         return func(*args, **kwargs)
     return wrapper
 
