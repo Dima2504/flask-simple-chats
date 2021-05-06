@@ -2,9 +2,17 @@ from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
 from app.authentication.exceptions import UserNotFoundByIndexError
+from app.chats.exceptions import ChatNotFoundByIndexesError, ChatAlreadyExistsError
 from itsdangerous import TimedJSONWebSignatureSerializer
 from flask import current_app
 from app.authentication.email import send_mail
+from sqlalchemy import and_, or_, exists
+from functools import lru_cache
+
+chats = db.Table('chats',
+                 db.Column('chat_id', db.Integer, primary_key=True),
+                 db.Column('user1_id', db.Integer, db.ForeignKey('users.user_id'), nullable=False),
+                 db.Column('user2_id', db.Integer, db.ForeignKey('users.user_id'), nullable=False))
 
 
 class User(db.Model):
@@ -71,6 +79,64 @@ class User(db.Model):
         user_id = serializer.loads(token)['user_id']
         return cls.get_user_by_id(user_id)
 
+    @staticmethod
+    def create_chat(user1_id: int, user2_id: int):
+        """Crete a note in chats table which connects two user in chat.
+        Params can be given in an arbitrary order, so only ascending sequence of users ids will be saved to DB.
+        If a chats between given users already exists, error will be thrown.
+        db.session must be committed after executing the function to save changes.
+        :param user1_id: first user's id to check
+        :param user2_id: second user's id to check"""
+        user1_id, user2_id = sorted([user1_id, user2_id])
+        if not User.is_chat_between(user1_id, user2_id):
+            db.session.execute(chats.insert(
+                values=[{'user1_id': user1_id, 'user2_id': user2_id}, ]))
+            User.is_chat_between.cache_clear()
+        else:
+            raise ChatAlreadyExistsError
 
+    @staticmethod
+    def delete_chat(user1_id: int, user2_id: int):
+        """Delete a chat between given users from db. Ids can be put in an arbitrary order like in a function above.
+        If the chat does not exist, an error will be thrown. db.session must be committed after executing
+        the function to save changes.
+        :param user1_id: first user's id to check
+        :param user2_id: second user's id to check"""
+        user1_id, user2_id = sorted([user1_id, user2_id])
+        if User.is_chat_between(user1_id, user2_id):
+            db.session.execute(chats.delete().where(and_(chats.c.user1_id == user1_id, chats.c.user2_id == user2_id)))
+            User.is_chat_between.cache_clear()
+            User.get_chat_id_by_users_ids.cache_clear()
+        else:
+            raise ChatNotFoundByIndexesError
 
+    @staticmethod
+    @lru_cache(maxsize=256)
+    def is_chat_between(user1_id: int, user2_id: int) -> bool:
+        """Check if two users have chat together.
+        :param user1_id: first user's id to check
+        :param user2_id: second user's id to check
+        :returns boolean value: if it is true, users have already had chat together, if it is false - they have not had"""
+        user1_id, user2_id = sorted([user1_id, user2_id])
+        return db.session.query(
+            exists(chats).where(and_(chats.c.user1_id == user1_id, chats.c.user2_id == user2_id))).scalar()
+
+    @staticmethod
+    @lru_cache(maxsize=256)
+    def get_chat_id_by_users_ids(user1_id: int, user2_id: int) -> int:
+        """
+        Return a unique chat's id which connects two users from given ids. If a chat does not exist, raises error.
+        :param user1_id: first user's id.
+        :type user1_id: int
+        :param user2_id: second user's id.
+        :type user2_id:int
+        :return: chat id
+        :rtype:int
+        """
+        user1_id, user2_id = sorted([user1_id, user2_id])
+        chat_id = db.session.query(chats.c.chat_id).filter(
+            and_(chats.c.user1_id == user1_id, chats.c.user2_id == user2_id)).scalar()
+        if not chat_id:
+            raise ChatNotFoundByIndexesError
+        return chat_id
 

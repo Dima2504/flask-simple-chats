@@ -31,8 +31,11 @@
                     </a>
                     <div class="content__navbar">
                         {% if user %}
-                            <button style="border-radius: 5px" class="content__login"
-                                    onclick="document.location = '{{ url_for('authentication.logout') }}'">Log out
+                            <button class="content__login"
+                                    onclick="document.location = '{{ url_for('chats.list') }}'">My chats
+                            </button>
+                            <button onclick="document.location = '{{ url_for('authentication.logout') }}'"
+                                    class="content__register">Log out
                             </button>
                         {% else %}
                             <button class="content__login"
@@ -49,10 +52,6 @@
                 {% block content %}
                 {% endblock %}
             </div>
-            <!--<div class="content__buttons">
-                    <div class="content__chat button">Begin simple chat</div>
-                    <div class="content__encodedchat button">Begin encoded chat</div>
-                </div> -->
         </div>
         <footer>
             <div class="footer__container">

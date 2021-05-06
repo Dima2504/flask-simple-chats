@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Search for{% endblock %}
+{% block content %}
+    <div class="content__search">
+        <h1>To start communication, please, search for the recipient below ↓</h1>
+        <div class="search-form">
+            <form>
+                <input type="text" name="search-string" placeholder="Name or username">
+                <input id="search-button" type="submit" value="Search">
+            </form>
+        </div>
+        <div class="edge"></div>
+        <div class="content__searched_users">
+            <ul>
+            </ul>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/ajax_search.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Chat is going{% endblock %}
+{% block content %}
+
+    <div class="content__chat">
+        <div class="content__usernames">
+            <div class="companion_username">{{ companion_user_name }}:</div>
+            <div class="user_username">You:</div>
+        </div>
+        <div class="content__messages">
+        </div>
+        <form id="send_message_form">
+            <input id="input_message" placeholder="Enter your message here" name="message">
+            <input type="submit">
+        </form>
+        <div class="addition_clause"><a onclick="leave_room()">Leave room</a></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+            integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+            crossorigin="anonymous"></script>
+
+    <script src="{{ url_for('static', filename='js/socket_chat.js') }}" type="text/javascript" charset="utf-8">
+    </script>
+{% endblock %}

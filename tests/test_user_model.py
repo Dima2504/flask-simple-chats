@@ -5,6 +5,9 @@ from app import mail
 from app.config import TestConfig
 from app.authentication import User
 from app.authentication.exceptions import UserNotFoundByIndexError
+from app.chats.exceptions import ChatAlreadyExistsError, ChatNotFoundByIndexesError
+from app.authentication.models import chats
+from sqlalchemy.sql import select
 from itsdangerous.exc import SignatureExpired, BadSignature
 import os
 import time
@@ -16,9 +19,13 @@ class UserModelTestCase(unittest.TestCase):
         self.app = make_app(TestConfig)
         self.app_context = self.app.app_context()
         self.app_context.push()
+        User.is_chat_between.cache_clear()
+        User.get_chat_id_by_users_ids.cache_clear()
         db.create_all()
 
     def tearDown(self) -> None:
+        User.is_chat_between.cache_clear()
+        User.get_chat_id_by_users_ids.cache_clear()
         db.session.remove()
         db.drop_all()
         self.app_context.pop()
@@ -101,6 +108,78 @@ class UserModelTestCase(unittest.TestCase):
         token = token[:10]
         with self.assertRaises(BadSignature):
             User.get_user_by_reset_password_token(token)
+
+    def test_users_create_delete_chat(self):
+        user1 = User(email='user1@gmail.com', username='user1', password_hash='123')
+        user2 = User(email='user2@gmail.com', username='user2', password_hash='123')
+        db.session.add_all([user1, user2, ])
+        db.session.commit()
+
+        with self.assertRaises(ChatNotFoundByIndexesError):
+            User.delete_chat(1, 2)
+
+        self.assertFalse(User.is_chat_between(1, 2))
+        self.assertFalse(User.is_chat_between(2, 1))
+        result = db.session.execute(select(chats))
+        self.assertEqual(len(result.all()), 0)
+        result.close()
+
+        User.create_chat(1, 2)
+        db.session.commit()
+        with self.assertRaises(ChatAlreadyExistsError):
+            User.create_chat(2, 1)
+        self.assertTrue(User.is_chat_between(1, 2))
+        self.assertTrue(User.is_chat_between(2, 1))
+        result = db.session.execute(select(chats))
+        self.assertEqual(result.all()[0], (1, 1, 2))
+        result.close()
+
+        User.delete_chat(1, 2)
+        User.create_chat(2, 1)
+        db.session.commit()
+        self.assertTrue(User.is_chat_between(1, 2))
+        self.assertTrue(User.is_chat_between(2, 1))
+        result = db.session.execute(select(chats))
+        self.assertEqual(result.all()[0], (1, 1, 2))
+        result.close()
+
+        User.delete_chat(2, 1)
+        db.session.commit()
+        self.assertFalse(User.is_chat_between(1, 2))
+        self.assertFalse(User.is_chat_between(2, 1))
+        result = db.session.execute(select(chats))
+        self.assertEqual(len(result.all()), 0)
+        result.close()
+
+    def test_get_chat_id_by_users_ids(self):
+        user1 = User(email='user1@gmail.com', username='user1', password_hash='123')
+        user2 = User(email='user2@gmail.com', username='user2', password_hash='123')
+        user3 = User(email='user3@gmail.com', username='user3', password_hash='123')
+        db.session.add_all([user1, user2, user3, ])
+        db.session.commit()
+        with self.assertRaises(ChatNotFoundByIndexesError):
+            User.get_chat_id_by_users_ids(1, 2)
+        with self.assertRaises(ChatNotFoundByIndexesError):
+            User.get_chat_id_by_users_ids(2, 1)
+        User.create_chat(1, 2)
+        User.create_chat(2, 3)
+        db.session.commit()
+        self.assertTrue(User.get_chat_id_by_users_ids(1, 2) == User.get_chat_id_by_users_ids(2, 1))
+        self.assertTrue(User.get_chat_id_by_users_ids(2, 3) == User.get_chat_id_by_users_ids(3, 2))
+        with self.assertRaises(ChatNotFoundByIndexesError):
+            User.get_chat_id_by_users_ids(1, 3)
+        User.delete_chat(3, 2)
+        User.delete_chat(2, 1)
+        db.session.commit()
+        with self.assertRaises(ChatNotFoundByIndexesError):
+            User.get_chat_id_by_users_ids(2, 3)
+        with self.assertRaises(ChatNotFoundByIndexesError):
+            User.get_chat_id_by_users_ids(1, 2)
+
+
+
+
+
 
 
 

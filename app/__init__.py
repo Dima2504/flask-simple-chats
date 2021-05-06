@@ -5,10 +5,14 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_mail import Mail
+from flask_socketio import SocketIO
 
 db = SQLAlchemy()
 migrate = Migrate()
 mail = Mail()
+socket_io = SocketIO()
+
+import app.chats.events
 
 
 def make_app(test_config: object = None) -> Flask:
@@ -40,6 +44,7 @@ def make_app(test_config: object = None) -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
     mail.init_app(app)
+    socket_io.init_app(app)
 
     from app.views import view
     app.register_blueprint(view)
@@ -49,5 +54,8 @@ def make_app(test_config: object = None) -> Flask:
 
     from app.authentication import authentication
     app.register_blueprint(authentication)
+
+    from app.chats import chats
+    app.register_blueprint(chats)
 
     return app
