@@ -8,6 +8,7 @@ from flask import session, g
 from flask import flash
 from flask import render_template
 from flask import abort
+from flask import current_app
 from flask.views import MethodView
 from app.authentication.decorators import anonymous_required
 from app.authentication.validators import validate_equal_passwords, validate_email, validate_password_length
@@ -43,7 +44,7 @@ class LoginView(MethodView):
         else:
             flash('Successfully logged in!')
             session['current_user_id'] = user.user_id
-            return redirect(url_for('view.index'))
+            return redirect(request.args.get('next') or url_for('view.index'))
 
         return render_template('authentication/login.html')
 
@@ -153,6 +154,3 @@ def logout():
     session.clear()
     flash('Successfully logged out')
     return redirect(url_for('view.index'))
-
-
-

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Login{% endblock %}
 {% block body %}
-    <form action="{{ url_for('authentication.login')}}" method="post">
+    <form action="{{ url_for('authentication.login', next=request.args.get('next'))}}" method="post">
         <input type="text" name="email" required>
         <input type="text" name="password" required>
         <button type="submit">Log in</button>
