@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('print_message', function (data) {
         print_message(data);
-        // increase not to obtain from db a duplicates of messages.
+        // increase not to obtain from db duplicates of messages.
         messages_offset++;
         // to stay down after sending messages.
         messages.scrollTop = messages.scrollHeight;
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             //not to move up after loading addition messages
             messages.scrollTop = messages.scrollHeight - scrollHeightOld;
         }
-        // increase not to obtain from db a duplicates of messages.
+        // increase not to obtain from db duplicates of messages.
         messages_offset += data['messages_number']
     });
 
