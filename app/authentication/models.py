@@ -140,3 +140,31 @@ class User(db.Model):
             raise ChatNotFoundByIndexesError
         return chat_id
 
+    def get_authentication_token(self, expires_in: int = None) -> str:
+        """
+        Generates authentication token for the current user so that he can access the secure functionality without
+        putting login and password every request.
+        :param expires_in: time in seconds which must go by before the token is spoilt. If nothing is put, a default
+        value will be chosen.
+        :type expires_in: int
+        :return: generated token
+        :rtype: str
+        """
+        if not expires_in:
+            expires_in = current_app.config['AUTHENTICATION_TOKEN_DEFAULT_EXPIRES_IN']
+        serializer = TimedJSONWebSignatureSerializer(current_app.config['SECRET_KEY'], expires_in)
+        return serializer.dumps({'user_id': self.user_id}).decode()
+
+    @staticmethod
+    def get_user_by_authentication_token(token: str) -> 'User':
+        """
+        Deserializes the token and returns a user who matches the received id. Raises BadSignature or SignatureExpired
+        errors if necessary. After that a user who are trying to access must be refused.
+        :param token: token string received from a client.
+        :type token: str
+        :return: User instance
+        :rtype: User
+        """
+        serializer = TimedJSONWebSignatureSerializer(current_app.config['SECRET_KEY'])
+        user_id = serializer.loads(token)['user_id']
+        return User.get_user_by_id(user_id)

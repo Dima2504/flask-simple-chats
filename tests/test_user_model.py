@@ -176,6 +176,22 @@ class UserModelTestCase(unittest.TestCase):
         with self.assertRaises(ChatNotFoundByIndexesError):
             User.get_chat_id_by_users_ids(1, 2)
 
+    def test_authentication_token(self):
+        user = User(email='user1@gmail.com', username='user1', password_hash='123')
+        db.session.add(user)
+        db.session.commit()
+        token = user.get_authentication_token()
+        self.assertEqual(user, User.get_user_by_authentication_token(token))
+
+        token_modified = token + 'blabla'
+        with self.assertRaises(BadSignature):
+            User.get_user_by_authentication_token(token_modified)
+
+        token_expired = user.get_authentication_token(expires_in=1)
+        time.sleep(1.5)
+        with self.assertRaises(SignatureExpired):
+            User.get_user_by_authentication_token(token_expired)
+
 
 
 
