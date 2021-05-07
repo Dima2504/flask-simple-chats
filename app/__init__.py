@@ -32,7 +32,6 @@ def make_app(test_config: object = None) -> Flask:
     :returns: a new configured flask application instance.
     :rtype: Flask
     """
-
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(Config)
     if test_config:
@@ -57,5 +56,8 @@ def make_app(test_config: object = None) -> Flask:
 
     from app.chats import chats
     app.register_blueprint(chats)
+
+    from app.api import api_bp
+    app.register_blueprint(api_bp)
 
     return app
