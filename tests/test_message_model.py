@@ -39,3 +39,30 @@ class MessageModelTestCase(unittest.TestCase):
         result.close()
         with self.assertRaises(AssertionError):
             Message(text='blabla', datetime_writing=datetime.now(), sender_id=1, receiver_id=2, chat_id=3)
+
+    def test_delete_messages(self):
+        user1 = User(email='user1@gmail.com', username='user1', password_hash='123')
+        user2 = User(email='user2@gmail.com', username='user2', password_hash='223')
+        user3 = User(email='user3@gmail.com', username='user3', password_hash='223')
+        m1 = Message(text='blabla', sender_id=2, receiver_id=1)
+        m2 = Message(text='blabla2', sender_id=1, receiver_id=2)
+        m3 = Message(text='blabla3', sender_id=1, receiver_id=2)
+
+        m4 = Message(text='blabla4', sender_id=1, receiver_id=3)
+        m5 = Message(text='blabla5', sender_id=3, receiver_id=1)
+
+        db.session.add_all([user1, user2, user3, m1, m2, m3, m4, m5])
+        db.session.commit()
+        self.assertEqual(len(Message.query.all()), 5)
+        Message.delete_messages(two_users_ids=[2, 1])
+        db.session.commit()
+        self.assertEqual(len(Message.query.all()), 2)
+        Message.delete_messages(chat_id=2)
+        db.session.commit()
+        self.assertEqual(len(Message.query.all()), 0)
+
+
+
+
+
+

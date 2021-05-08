@@ -96,13 +96,17 @@ class User(db.Model):
             raise ChatAlreadyExistsError
 
     @staticmethod
-    def delete_chat(user1_id: int, user2_id: int):
-        """Delete a chat between given users from db. Ids can be put in an arbitrary order like in a function above.
+    def delete_chat(two_users_ids: list = None, chat_id: int = None):
+        """Delete a chat between given users from db. Ids can be put in an arbitrary order like in a function above,
+        but in a list, by the first argument. Instead of users ids, chat id can be put directly.
         If the chat does not exist, an error will be thrown. db.session must be committed after executing
         the function to save changes.
-        :param user1_id: first user's id to check
-        :param user2_id: second user's id to check"""
-        chat_id = User.get_chat_id_by_users_ids(user1_id, user2_id)
+        :param two_users_ids: users ids in a list. The chat between them will be deleted
+        :type two_users_ids: list
+        :param chat_id: the chat, which will be deleted
+        :type chat_id: int
+        """
+        chat_id = chat_id or User.get_chat_id_by_users_ids(*two_users_ids)
         db.session.execute(chats.delete().where(chats.c.chat_id == chat_id))
         User.is_chat_between.cache_clear()
         User.get_chat_id_by_users_ids.cache_clear()
