@@ -175,16 +175,3 @@ class UserModelTestCase(unittest.TestCase):
             User.get_chat_id_by_users_ids(2, 3)
         with self.assertRaises(ChatNotFoundByIndexesError):
             User.get_chat_id_by_users_ids(1, 2)
-
-
-
-
-
-
-
-
-
-
-
-
-
