@@ -102,13 +102,10 @@ class User(db.Model):
         the function to save changes.
         :param user1_id: first user's id to check
         :param user2_id: second user's id to check"""
-        user1_id, user2_id = sorted([user1_id, user2_id])
-        if User.is_chat_between(user1_id, user2_id):
-            db.session.execute(chats.delete().where(and_(chats.c.user1_id == user1_id, chats.c.user2_id == user2_id)))
-            User.is_chat_between.cache_clear()
-            User.get_chat_id_by_users_ids.cache_clear()
-        else:
-            raise ChatNotFoundByIndexesError
+        chat_id = User.get_chat_id_by_users_ids(user1_id, user2_id)
+        db.session.execute(chats.delete().where(chats.c.chat_id == chat_id))
+        User.is_chat_between.cache_clear()
+        User.get_chat_id_by_users_ids.cache_clear()
 
     @staticmethod
     @lru_cache(maxsize=256)
@@ -168,3 +165,4 @@ class User(db.Model):
         serializer = TimedJSONWebSignatureSerializer(current_app.config['SECRET_KEY'])
         user_id = serializer.loads(token)['user_id']
         return User.get_user_by_id(user_id)
+

@@ -192,15 +192,3 @@ class UserModelTestCase(unittest.TestCase):
         with self.assertRaises(SignatureExpired):
             User.get_user_by_authentication_token(token_expired)
 
-
-
-
-
-
-
-
-
-
-
-
-
