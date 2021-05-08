@@ -1,6 +1,6 @@
 from flask_restful import Resource
 from flask_restful import abort
-from flask import request
+from flask_restful import reqparse
 from flask import g
 from flask import current_app
 from app.authentication.models import User
@@ -14,10 +14,16 @@ class Register(Resource):
     def post(self):
         """Simple registration route. Any user can put his credentials and receive an answer. If everything is alright,
         the user will be registered by system"""
-        email = request.json.get('email')
-        username = request.json.get('username')
-        name = request.json.get('name')
-        password = request.json.get('password')
+        parser = reqparse.RequestParser()
+        parser.add_argument('email', type=str, required=True)
+        parser.add_argument('username', type=str, required=True)
+        parser.add_argument('name', type=str, required=True)
+        parser.add_argument('password', type=str, required=True)
+        args = parser.parse_args()
+        email = args.get('email')
+        username = args.get('username')
+        name = args.get('name')
+        password = args.get('password')
         try:
             validate_email(email)
             validate_length(name, 3, 25, error_message='Name length must be between 3 and 25 chars')
@@ -25,9 +31,9 @@ class Register(Resource):
         except ValidationError as e:
             abort(400, message=e.message)
         if User.query.filter_by(email=email).first():
-            abort(400, message='User with such an email has been registered!')
+            abort(400, message=f"User '{email}' has been registered!")
         elif User.query.filter_by(username=username).first():
-            abort(400, message='This username is busy! Try putting another one')
+            abort(400, message=f"Username '{username}' is busy! Try putting another one")
         else:
             user = User(email=email, username=username, name=name)
             user.set_password(password)
