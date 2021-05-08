@@ -39,5 +39,5 @@ def basic_or_bearer_authorization_required(func):
                         abort(401, message='Authentication token is not valid')
                     g.user = user
                     return func(*args, **kwargs)
-        abort(403, message='To access try to use Basic (base64) or Bearer (jwt) http authorization')
+        abort(403, message='To access use Basic (base64) or Bearer (jwt) http authorization')
     return wrapper
