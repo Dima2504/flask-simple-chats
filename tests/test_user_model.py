@@ -188,7 +188,7 @@ class UserModelTestCase(unittest.TestCase):
             User.get_user_by_authentication_token(token_modified)
 
         token_expired = user.get_authentication_token(expires_in=1)
-        time.sleep(1.5)
+        time.sleep(2)
         with self.assertRaises(SignatureExpired):
             User.get_user_by_authentication_token(token_expired)
 

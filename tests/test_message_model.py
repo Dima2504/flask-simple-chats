@@ -2,10 +2,11 @@ from app import make_app
 from app.config import TestConfig
 from app import db
 from app.authentication import User
-from app.chats.exceptions import ChatNotFoundByIndexesError, ChatAlreadyExistsError
+from app.authentication.models import chats
 from app.chats import Message
 import unittest
 from datetime import datetime
+from sqlalchemy import select
 
 
 class MessageModelTestCase(unittest.TestCase):
@@ -29,10 +30,12 @@ class MessageModelTestCase(unittest.TestCase):
         user2 = User(email='user2@gmail.com', username='user2', password_hash='223')
         db.session.add_all([user1, user2])
         db.session.commit()
-        with self.assertRaises(ChatNotFoundByIndexesError):
-            Message(text='blabla', datetime_writing=datetime.now(), sender_id=1, receiver_id=2)
-        User.create_chat(1, 2)
         message = Message(text='blabla', datetime_writing=datetime.now(), sender_id=2, receiver_id=1)
         self.assertEqual(message.chat_id, 1)
+        db.session.add(message)
+        db.session.commit()
+        result = db.session.execute(select(chats))
+        self.assertEqual(len(result.all()), 1)
+        result.close()
         with self.assertRaises(AssertionError):
             Message(text='blabla', datetime_writing=datetime.now(), sender_id=1, receiver_id=2, chat_id=3)

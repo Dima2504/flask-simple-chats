@@ -35,14 +35,10 @@ class ChatRoomNamespace(Namespace):
         """
         room_name = session.get('room_name')
         emit('print_message', data, room=room_name)
-        current_user_id = session.get('current_user_id')
-        companion_id = session.get('companion_id')
-        if not User.is_chat_between(current_user_id, companion_id):
-            User.create_chat(current_user_id, companion_id)
         m = Message(datetime_writing=datetime.utcfromtimestamp(data['timestamp_milliseconds'] / 1000),
                     text=data['message'],
-                    sender_id=current_user_id,
-                    receiver_id=companion_id)
+                    sender_id=session.get('current_user_id'),
+                    receiver_id=session.get('companion_id'))
         db.session.add(m)
         db.session.commit()
 
@@ -67,9 +63,9 @@ class ChatRoomNamespace(Namespace):
         messages_limit = current_app.config['MESSAGES_PER_LOAD_EVENT']
         current_user_id = session.get('current_user_id')
         companion_id = session.get('companion_id')
-        chat_id = User.get_chat_id_by_users_ids(current_user_id, companion_id)
         last_messages = db.session.query(Message.sender_id, Message.text, Message.datetime_writing).filter(
-            Message.chat_id == chat_id).order_by(
+            or_(and_(Message.sender_id == current_user_id, Message.receiver_id == companion_id),
+                and_(Message.receiver_id == current_user_id, Message.sender_id == companion_id))).order_by(
             desc(Message.datetime_writing)).offset(messages_offset).limit(messages_limit).all()
         result_data = {'messages_number': len(last_messages),
                        'messages': [{'is_current_user': current_user_id == message[0],

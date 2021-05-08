@@ -19,8 +19,12 @@ class Message(db.Model):
     receiver = db.relationship('User', foreign_keys=[receiver_id], backref='messages_received')
 
     def __init__(self, *args, **kwargs):
+        sender_id = kwargs.get('sender_id')
+        receiver_id = kwargs.get('receiver_id')
+        if not User.is_chat_between(sender_id, receiver_id):
+            User.create_chat(sender_id, receiver_id)
         if 'chat_id' not in kwargs:
-            self.chat_id = User.get_chat_id_by_users_ids(kwargs['sender_id'], kwargs['receiver_id'])
+            self.chat_id = User.get_chat_id_by_users_ids(sender_id, receiver_id)
         else:
             assert kwargs['chat_id'] == User.get_chat_id_by_users_ids(kwargs['sender_id'],
                                                                       kwargs['receiver_id']), 'Not acceptable at all!!!'
