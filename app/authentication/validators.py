@@ -17,7 +17,7 @@ def validate_email(email: str):
     try:
         val_em(email)
     except EmailNotValidError:
-        raise ValidationError("E-mail is not valid")
+        raise ValidationError(f"E-mail '{email}' is not valid")
 
 
 def validate_password_length(password: str, min_length: int = None):
