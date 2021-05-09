@@ -5,6 +5,7 @@
         <h1>To start communication, please, search for the recipient below ↓</h1>
         <div class="search-form">
             <form>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <input type="text" name="search-string" placeholder="Name or username">
                 <input id="search-button" type="submit" value="Search">
             </form>

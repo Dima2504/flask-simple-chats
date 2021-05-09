@@ -158,14 +158,12 @@ class ClientTestCase(unittest.TestCase):
             self.assertEqual(session['current_user_id'], 1)
             response = client.get('/chats/begin/test_user2')
             self.assertEqual(response.status_code, 302)
-            self.assertEqual(len(session), 4)
             self.assertEqual(session['room_name'], get_users_unique_room_name('test_user1', 'test_user2'))
             self.assertEqual(session['user_name'], 'Ann1')
             self.assertEqual(session['companion_id'], 2)
 
             response = client.get('/chats/end')
             self.assertEqual(response.status_code, 302)
-            self.assertEqual(len(session), 1)
             self.assertEqual(session['current_user_id'], 1)
 
     def test_user_chat_begin_404(self):

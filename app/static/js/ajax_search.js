@@ -3,12 +3,15 @@ document.addEventListener('DOMContentLoaded', () => {
     search_form.addEventListener('submit', (event) => {
         event.preventDefault();
         document.getElementById('search-button').blur();
-        let search_string = new FormData(search_form).get('search-string');
+        let form_data = new FormData(search_form);
+        let search_string = form_data.get('search-string');
+        let csrf_token = form_data.get('csrf_token');
         if (search_string.length !== 0) {
             let url = '/chats/ajax-search?' + new URLSearchParams({'search-string': search_string}).toString();
             fetch(url, {
                 method: 'GET',
                 headers: {
+                    'X-CSRFToken': csrf_token,
                     'X-Requested-With': 'XMLHttpRequest',
                     'Content-type': 'application/x-www-form-url',
                 }

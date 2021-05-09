@@ -40,3 +40,4 @@ class TestConfig(Config):
     TEST_DB_PATH = os.getenv('TEST_DB_PATH') or '/tmp'
     TEST_DB_NAME = os.getenv('TEST_DB_NAME') or 'chats_test_db.sqlite'
     SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(TEST_DB_PATH, TEST_DB_NAME)}'
+    WTF_CSRF_ENABLED = False
