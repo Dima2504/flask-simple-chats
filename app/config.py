@@ -29,6 +29,7 @@ class Config:
     CHATS_PER_PAGE = 8
     MESSAGES_PER_LOAD_EVENT = 10
     AUTHENTICATION_TOKEN_DEFAULT_EXPIRES_IN = 3600
+    BUNDLE_ERRORS = True
 
 
 class TestConfig(Config):
