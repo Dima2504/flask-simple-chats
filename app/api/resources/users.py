@@ -1,11 +1,10 @@
 from flask_restful import Resource
 from flask_restful import fields, marshal_with
-from flask_restful import abort
 from flask import g
 from app import db
 from app.authentication.models import User
-from app.authentication.exceptions import UserNotFoundByIndexError
 from app.api.decorators import basic_or_bearer_authorization_required as authorization_required
+from app.api.utils import return_user_or_abort
 
 user_fields = {
     'user_id': fields.Integer,
@@ -35,9 +34,5 @@ class UserSingle(Resource):
     @authorization_required
     @marshal_with(user_single_fields)
     def get(self, user_id: int):
-        user = None
-        try:
-            user = User.get_user_by_id(user_id)
-        except UserNotFoundByIndexError:
-            abort(404, message=f'User {user_id} does not exist')
+        user = return_user_or_abort(user_id)
         return {'current_user_id': g.user.user_id, 'data': user}
