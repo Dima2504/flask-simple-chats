@@ -24,7 +24,7 @@ def upgrade():
     sa.Column('email', sa.String(length=255), nullable=False),
     sa.Column('name', sa.String(length=20), nullable=True),
     sa.Column('password_hash', sa.String(length=255), nullable=False),
-    sa.Column('data_joined', sa.DateTime(), nullable=True),
+    sa.Column('date_joined', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('user_id'),
     sa.UniqueConstraint('email'),
     sa.UniqueConstraint('username')

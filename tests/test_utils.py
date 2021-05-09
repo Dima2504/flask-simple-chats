@@ -100,13 +100,13 @@ class UtilsTestCase(unittest.TestCase):
 
     def test_search_for_users_by(self):
         user1 = User(email='user1@gmail.com', username='pasha', name="Pavlo Vasyliovych", password_hash='123',
-                     data_joined=datetime.now())
+                     date_joined=datetime.now())
         user2 = User(email='user2@gmail.com', username='dima', name="Dmitry Andreevich", password_hash='123',
-                     data_joined=datetime.now())
+                     date_joined=datetime.now())
         user3 = User(email='user3@gmail.com', username='maks', name="Maxim Ruslanovich", password_hash='123',
-                     data_joined=datetime.now())
+                     date_joined=datetime.now())
         user4 = User(email='user4@gmail.com', username='ann', name="Anna Alekseevna", password_hash='123',
-                     data_joined=datetime.now())
+                     date_joined=datetime.now())
         db.session.add_all([user1, user2, user3, user4])
         db.session.commit()
         self.assertEqual(len(search_for_users_by('').all()), 4)

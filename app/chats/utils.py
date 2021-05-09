@@ -77,8 +77,8 @@ def search_for_users_by(search_string: str, current_user_id: int = None) -> Base
         or_params.append(User.username.ilike(f'%{search_string}%'))
     or_stmt = or_(*or_params)
     if not current_user_id:
-        result = db.session.query(User.name, User.username).where(or_stmt).order_by(desc(User.data_joined))
+        result = db.session.query(User.name, User.username).where(or_stmt).order_by(desc(User.date_joined))
     else:
         result = db.session.query(User.name, User.username).where(
-            and_(or_stmt, User.user_id != current_user_id)).order_by(desc(User.data_joined))
+            and_(or_stmt, User.user_id != current_user_id)).order_by(desc(User.date_joined))
     return result

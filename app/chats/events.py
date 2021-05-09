@@ -7,7 +7,7 @@ from app.chats.models import Message
 from app.authentication.models import User
 from sqlalchemy import desc, or_, and_
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class ChatRoomNamespace(Namespace):
@@ -70,7 +70,8 @@ class ChatRoomNamespace(Namespace):
         result_data = {'messages_number': len(last_messages),
                        'messages': [{'is_current_user': current_user_id == message[0],
                                      'message_text': message[1],
-                                     'timestamp_milliseconds': message[2].timestamp() * 1000,
+                                     'timestamp_milliseconds': message[2].replace(
+                                         tzinfo=timezone.utc).timestamp() * 1000,
                                      } for message in last_messages]
                        }
         emit('load_more_messages', result_data, broadcast=False)

@@ -26,7 +26,7 @@ class User(db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False)
     name = db.Column(db.String(20))
     password_hash = db.Column(db.String(255), nullable=False)
-    data_joined = db.Column(db.DateTime, default=datetime.datetime.utcnow())
+    date_joined = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def set_password(self, password: str):
         """Hashes user password using werkzeug method and saves it into the appropriate attribute"""
