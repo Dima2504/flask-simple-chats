@@ -3,11 +3,13 @@ from flask_restful import reqparse
 from flask_restful import marshal_with, fields
 from flask_restful import abort
 from flask import g
+from flask import request
 from app.chats.models import Message
 from app.api.decorators import basic_or_bearer_authorization_required as authorization_required
 from app import db
 from app.api.utils import abort_if_not_a_participant, return_chat_or_abort, return_message_or_abort, \
     abort_if_not_from_a_chat, abort_if_not_own
+from app.api.utils import model_filter_by_get_params
 from typing import Tuple, Any
 
 message_fields = {
@@ -53,7 +55,8 @@ class ChatMessagesList(Resource):
         current_user_id = g.user.user_id
         chat = return_chat_or_abort(chat_id)
         abort_if_not_a_participant(current_user_id, chat)
-        messages = Message.query.filter_by(chat_id=chat_id).all()
+        messages = Message.query.filter_by(chat_id=chat_id)
+        messages = model_filter_by_get_params(Message, messages, request.args)
         return {'current_user_id': current_user_id, 'current_chat_id': chat_id, 'data': messages}, 200
 
     @authorization_required
