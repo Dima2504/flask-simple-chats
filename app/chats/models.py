@@ -3,6 +3,7 @@ from app import db
 import datetime
 from app.authentication.models import User
 from sqlalchemy import delete
+from .exceptions import MessageNotFoundByIndexError
 
 
 class Message(db.Model):
@@ -27,8 +28,8 @@ class Message(db.Model):
         if 'chat_id' not in kwargs:
             self.chat_id = User.get_chat_id_by_users_ids(sender_id, receiver_id)
         else:
-            assert kwargs['chat_id'] == User.get_chat_id_by_users_ids(kwargs['sender_id'],
-                                                                      kwargs['receiver_id']), 'Not acceptable at all!!!'
+            assert kwargs['chat_id'] == User.get_chat_id_by_users_ids(sender_id,
+                                                                      receiver_id), 'Not acceptable at all!!!'
         super().__init__(*args, **kwargs)
 
     @staticmethod
@@ -44,3 +45,11 @@ class Message(db.Model):
         """
         chat_id = chat_id or User.get_chat_id_by_users_ids(*two_users_ids)
         db.session.execute(delete(Message).where(Message.chat_id == chat_id))
+
+    @classmethod
+    def get_message_by_id(cls, message_id: int) -> 'Message':
+        """Return a certain message instance with given id if exists, else - raise error"""
+        message = cls.query.get(message_id)
+        if not message:
+            raise MessageNotFoundByIndexError
+        return message
