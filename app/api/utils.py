@@ -9,6 +9,7 @@ from sqlalchemy.sql.sqltypes import String
 from sqlalchemy import desc
 from flask_sqlalchemy.model import DefaultMeta
 from flask_sqlalchemy import BaseQuery
+from typing import Any
 
 
 def model_filter_by_get_params(model: DefaultMeta, query: BaseQuery, args: dict) -> BaseQuery:
@@ -66,6 +67,20 @@ def model_filter_by_get_params(model: DefaultMeta, query: BaseQuery, args: dict)
     if 'offset' in args:
         query = query.offset(int(args.get('offset')))
     return query
+
+
+def longer_than_zero(value: Any) -> str:
+    """Custom input validator for flask_restful.reqparse.RequestParser. Converts given value into str, then - checks
+    whether its length is equal to zero. If it is true - ValueError. So, api users cannot send a message without some
+    text.
+    :param value: a value from the request parser
+    :type value: Any
+    :returns: converted into a string value, if it is valid
+    :rtype: str"""
+    value = str(value)
+    if len(value) == 0:
+        raise ValueError("Message text length cannot be equal to zero")
+    return value
 
 
 def return_chat_or_abort(chat_id: int) -> Row:

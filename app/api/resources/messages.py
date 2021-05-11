@@ -10,7 +10,7 @@ from app import db
 from app.api.utils import abort_if_not_a_participant, return_chat_or_abort, return_message_or_abort, \
     abort_if_not_from_a_chat, abort_if_not_own
 from app.api.utils import model_filter_by_get_params
-from typing import Tuple, Any
+from typing import Tuple
 
 message_fields = {
     'message_id': fields.Integer,
@@ -31,20 +31,6 @@ message_single_fields = {
     'current_chat_id': fields.Integer,
     'data': fields.Nested(message_fields),
 }
-
-
-def longer_than_zero(value: Any) -> str:
-    """Custom input validator for flask_restful.reqparse.RequestParser. Converts given value into str, then - checks
-    whether its length is equal to zero. If it is true - ValueError. So, api users cannot send a message without some
-    text.
-    :param value: a value from the request parser
-    :type value: Any
-    :returns: converted into a string value, if it is valid
-    :rtype: str"""
-    value = str(value)
-    if len(value) == 0:
-        raise ValueError("Message text length cannot be equal to zero")
-    return value
 
 
 class ChatMessagesList(Resource):
