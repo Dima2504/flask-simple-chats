@@ -116,7 +116,7 @@ class UserModelTestCase(unittest.TestCase):
         db.session.commit()
 
         with self.assertRaises(ChatNotFoundByIndexesError):
-            User.delete_chat(1, 2)
+            User.delete_chat(two_users_ids=[1, 2])
 
         self.assertFalse(User.is_chat_between(1, 2))
         self.assertFalse(User.is_chat_between(2, 1))
@@ -134,7 +134,7 @@ class UserModelTestCase(unittest.TestCase):
         self.assertEqual(result.all()[0], (1, 1, 2))
         result.close()
 
-        User.delete_chat(1, 2)
+        User.delete_chat(two_users_ids=[1, 2])
         User.create_chat(2, 1)
         db.session.commit()
         self.assertTrue(User.is_chat_between(1, 2))
@@ -143,7 +143,7 @@ class UserModelTestCase(unittest.TestCase):
         self.assertEqual(result.all()[0], (1, 1, 2))
         result.close()
 
-        User.delete_chat(2, 1)
+        User.delete_chat(chat_id=1)
         db.session.commit()
         self.assertFalse(User.is_chat_between(1, 2))
         self.assertFalse(User.is_chat_between(2, 1))
@@ -168,10 +168,27 @@ class UserModelTestCase(unittest.TestCase):
         self.assertTrue(User.get_chat_id_by_users_ids(2, 3) == User.get_chat_id_by_users_ids(3, 2))
         with self.assertRaises(ChatNotFoundByIndexesError):
             User.get_chat_id_by_users_ids(1, 3)
-        User.delete_chat(3, 2)
-        User.delete_chat(2, 1)
+        User.delete_chat(two_users_ids=[3, 2])
+        User.delete_chat(two_users_ids=[2, 1])
         db.session.commit()
         with self.assertRaises(ChatNotFoundByIndexesError):
             User.get_chat_id_by_users_ids(2, 3)
         with self.assertRaises(ChatNotFoundByIndexesError):
             User.get_chat_id_by_users_ids(1, 2)
+
+    def test_authentication_token(self):
+        user = User(email='user1@gmail.com', username='user1', password_hash='123')
+        db.session.add(user)
+        db.session.commit()
+        token = user.get_authentication_token()
+        self.assertEqual(user, User.get_user_by_authentication_token(token))
+
+        token_modified = token + 'blabla'
+        with self.assertRaises(BadSignature):
+            User.get_user_by_authentication_token(token_modified)
+
+        token_expired = user.get_authentication_token(expires_in=1)
+        time.sleep(2)
+        with self.assertRaises(SignatureExpired):
+            User.get_user_by_authentication_token(token_expired)
+

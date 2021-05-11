@@ -96,13 +96,17 @@ class User(db.Model):
             raise ChatAlreadyExistsError
 
     @staticmethod
-    def delete_chat(user1_id: int, user2_id: int):
-        """Delete a chat between given users from db. Ids can be put in an arbitrary order like in a function above.
+    def delete_chat(two_users_ids: list = None, chat_id: int = None):
+        """Delete a chat between given users from db. Ids can be put in an arbitrary order like in a function above,
+        but in a list, by the first argument. Instead of users ids, chat id can be put directly.
         If the chat does not exist, an error will be thrown. db.session must be committed after executing
         the function to save changes.
-        :param user1_id: first user's id to check
-        :param user2_id: second user's id to check"""
-        chat_id = User.get_chat_id_by_users_ids(user1_id, user2_id)
+        :param two_users_ids: users ids in a list. The chat between them will be deleted
+        :type two_users_ids: list
+        :param chat_id: the chat, which will be deleted
+        :type chat_id: int
+        """
+        chat_id = chat_id or User.get_chat_id_by_users_ids(*two_users_ids)
         db.session.execute(chats.delete().where(chats.c.chat_id == chat_id))
         User.is_chat_between.cache_clear()
         User.get_chat_id_by_users_ids.cache_clear()
@@ -136,3 +140,33 @@ class User(db.Model):
         if not chat_id:
             raise ChatNotFoundByIndexesError
         return chat_id
+
+    def get_authentication_token(self, expires_in: int = None) -> str:
+        """
+        Generates authentication token for the current user so that he can access the secure functionality without
+        putting login and password every request.
+        :param expires_in: time in seconds which must go by before the token is spoilt. If nothing is put, a default
+        value will be chosen.
+        :type expires_in: int
+        :return: generated token
+        :rtype: str
+        """
+        if not expires_in:
+            expires_in = current_app.config['AUTHENTICATION_TOKEN_DEFAULT_EXPIRES_IN']
+        serializer = TimedJSONWebSignatureSerializer(current_app.config['SECRET_KEY'], expires_in)
+        return serializer.dumps({'user_id': self.user_id}).decode()
+
+    @staticmethod
+    def get_user_by_authentication_token(token: str) -> 'User':
+        """
+        Deserializes the token and returns a user who matches the received id. Raises BadSignature or SignatureExpired
+        errors if necessary. After that a user who are trying to access must be refused.
+        :param token: token string received from a client.
+        :type token: str
+        :return: User instance
+        :rtype: User
+        """
+        serializer = TimedJSONWebSignatureSerializer(current_app.config['SECRET_KEY'])
+        user_id = serializer.loads(token)['user_id']
+        return User.get_user_by_id(user_id)
+
