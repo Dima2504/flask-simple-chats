@@ -26,6 +26,7 @@ class Register(Resource):
         password = args.get('password')
         try:
             validate_email(email)
+            validate_length(username, 3, 25, error_message='Username length must be between 3 and 25 chars')
             validate_length(name, 3, 25, error_message='Name length must be between 3 and 25 chars')
             validate_password_length(password)
         except ValidationError as e:
@@ -51,3 +52,45 @@ class Token(Resource):
         token = g.user.get_authentication_token()
         expires_in = current_app.config['AUTHENTICATION_TOKEN_DEFAULT_EXPIRES_IN']
         return {'token': token, 'expires_in': expires_in}
+
+
+class Update(Resource):
+    @authorization_required
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('username', type=str)
+        parser.add_argument('name', type=str)
+        args = parser.parse_args()
+        user = g.user
+        username = args.get('username')
+        name = args.get('name')
+        username = None if username == user.username else username
+        name = None if name == user.name else name
+        if username:
+            if User.query.filter_by(username=username).first():
+                abort(400, message=f"Username '{username}' is busy! Try putting another one")
+            else:
+                try:
+                    validate_length(username, 3, 25, error_message='Username length must be between 3 and 25 chars')
+                    user.username = username
+                except ValidationError as e:
+                    abort(400, message=e.message)
+        if name:
+            try:
+                validate_length(name, 3, 25, error_message='Name length must be between 3 and 25 chars')
+                user.name = name
+            except ValidationError as e:
+                abort(400, message=e.message)
+        db.session.add(user)
+        db.session.commit()
+        result = {}
+        if username:
+            result['username'] = username
+        if name:
+            result['name'] = name
+        if len(result) > 0:
+            result['message'] = 'Successfully updated'
+            return result, 202
+        else:
+            result['message'] = 'Nothing was updated'
+            return result, 400
