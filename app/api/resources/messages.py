@@ -11,6 +11,7 @@ from app.api.utils import abort_if_not_a_participant, return_chat_or_abort, retu
     abort_if_not_from_a_chat, abort_if_not_own
 from app.api.utils import model_filter_by_get_params
 from typing import Tuple
+from ..utils import longer_than_zero
 
 message_fields = {
     'message_id': fields.Integer,
@@ -21,14 +22,14 @@ message_fields = {
 }
 
 messages_list_fields = {
-    'current_user_id': fields.Integer,
-    'current_chat_id': fields.Integer,
+    'user_id': fields.Integer,
+    'chat_id': fields.Integer,
     'data': fields.List(fields.Nested(message_fields)),
 }
 
 message_single_fields = {
-    'current_user_id': fields.Integer,
-    'current_chat_id': fields.Integer,
+    'user_id': fields.Integer,
+    'chat_id': fields.Integer,
     'data': fields.Nested(message_fields),
 }
 
@@ -43,7 +44,7 @@ class ChatMessagesList(Resource):
         abort_if_not_a_participant(current_user_id, chat)
         messages = Message.query.filter_by(chat_id=chat_id)
         messages = model_filter_by_get_params(Message, messages, request.args)
-        return {'current_user_id': current_user_id, 'current_chat_id': chat_id, 'data': messages}, 200
+        return {'user_id': current_user_id, 'chat_id': chat_id, 'data': messages}, 200
 
     @authorization_required
     def post(self, chat_id: int) -> Tuple[dict, int]:
@@ -61,7 +62,7 @@ class ChatMessagesList(Resource):
                 message = Message(text=text, sender_id=current_user_id, receiver_id=receiver_id, chat_id=chat_id)
                 db.session.add(message)
             db.session.commit()
-            return {'current_user_id': current_user_id, 'current_chat_id': chat_id,
+            return {'user_id': current_user_id, 'chat_id': chat_id,
                     'message': f"Your message{'s were' if len(args['texts']) > 1 else ' was'} successfully sent"}, 201
         else:
             abort(400, message='It is necessary to put at least one message text')
@@ -77,7 +78,7 @@ class ChatMessageSingle(Resource):
         abort_if_not_a_participant(current_user_id, chat)
         message = return_message_or_abort(message_id)
         abort_if_not_from_a_chat(chat_id, message)
-        return {'current_user_id': current_user_id, 'current_chat_id': chat_id, 'data': message}, 200
+        return {'user_id': current_user_id, 'chat_id': chat_id, 'data': message}, 200
 
     @authorization_required
     def delete(self, chat_id: int, message_id: int) -> Tuple[dict, int]:
@@ -90,7 +91,7 @@ class ChatMessageSingle(Resource):
         abort_if_not_own(current_user_id, message)
         db.session.delete(message)
         db.session.commit()
-        return {'current_user_id': current_user_id, 'current_chat_id': chat_id,
+        return {'user_id': current_user_id, 'chat_id': chat_id, 'message_id': message_id,
                 'message': f'Message {message_id} was successfully deleted'}, 200
 
     @authorization_required
@@ -107,5 +108,5 @@ class ChatMessageSingle(Resource):
         abort_if_not_own(current_user_id, message)
         message.text = args.get('text')
         db.session.commit()
-        return {'current_user_id': current_user_id, 'current_chat_id': chat_id,
+        return {'user_id': current_user_id, 'chat_id': chat_id, 'message_id': message_id, 'text': args.get('text'),
                 'message': f'Message {message_id} was successfully updated'}, 200

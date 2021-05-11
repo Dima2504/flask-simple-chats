@@ -42,7 +42,7 @@ class Register(Resource):
             user.set_password(password)
             db.session.add(user)
             db.session.commit()
-            return {'message': 'Successfully registered!'}, 201
+            return {'email': email, 'message': 'Successfully registered!'}, 201
 
 
 class Token(Resource):
@@ -69,7 +69,7 @@ class ForgotPassword(Resource):
             user.send_email('Flask simple chats reset password',
                             render_template('authentication/emails/reset_password_rest.txt',
                                             user=user, token=user.get_reset_password_token()))
-            return {'message': 'Check Your e-email to reset the password!'}, 200
+            return {'email': email, 'message': 'Check Your e-email to reset the password!'}, 200
         else:
             abort(400, message=f"User with e-mail '{email}' does not exist")
 
