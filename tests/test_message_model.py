@@ -7,9 +7,18 @@ from app.chats import Message
 import unittest
 from datetime import datetime
 from sqlalchemy import select
+from app.chats.exceptions import MessageNotFoundByIndexError
+from typing import List
 
 
 class MessageModelTestCase(unittest.TestCase):
+    @staticmethod
+    def init_users(number) -> List[User]:
+        users = []
+        for i in range(1, number+1):
+            users.append(User(email=f'user{i}@gmail.com', username=f'user{i}', password_hash='123'))
+        return users
+
     def setUp(self) -> None:
         User.is_chat_between.cache_clear()
         User.get_chat_id_by_users_ids.cache_clear()
@@ -26,9 +35,7 @@ class MessageModelTestCase(unittest.TestCase):
         User.get_chat_id_by_users_ids.cache_clear()
 
     def test_message_init(self):
-        user1 = User(email='user1@gmail.com', username='user1', password_hash='123')
-        user2 = User(email='user2@gmail.com', username='user2', password_hash='223')
-        db.session.add_all([user1, user2])
+        db.session.add_all(MessageModelTestCase.init_users(2))
         db.session.commit()
         message = Message(text='blabla', datetime_writing=datetime.now(), sender_id=2, receiver_id=1)
         self.assertEqual(message.chat_id, 1)
@@ -41,9 +48,7 @@ class MessageModelTestCase(unittest.TestCase):
             Message(text='blabla', datetime_writing=datetime.now(), sender_id=1, receiver_id=2, chat_id=3)
 
     def test_delete_messages(self):
-        user1 = User(email='user1@gmail.com', username='user1', password_hash='123')
-        user2 = User(email='user2@gmail.com', username='user2', password_hash='223')
-        user3 = User(email='user3@gmail.com', username='user3', password_hash='223')
+        users = MessageModelTestCase.init_users(3)
         m1 = Message(text='blabla', sender_id=2, receiver_id=1)
         m2 = Message(text='blabla2', sender_id=1, receiver_id=2)
         m3 = Message(text='blabla3', sender_id=1, receiver_id=2)
@@ -51,7 +56,7 @@ class MessageModelTestCase(unittest.TestCase):
         m4 = Message(text='blabla4', sender_id=1, receiver_id=3)
         m5 = Message(text='blabla5', sender_id=3, receiver_id=1)
 
-        db.session.add_all([user1, user2, user3, m1, m2, m3, m4, m5])
+        db.session.add_all(users + [m1, m2, m3, m4, m5])
         db.session.commit()
         self.assertEqual(len(Message.query.all()), 5)
         Message.delete_messages(two_users_ids=[2, 1])
@@ -61,8 +66,13 @@ class MessageModelTestCase(unittest.TestCase):
         db.session.commit()
         self.assertEqual(len(Message.query.all()), 0)
 
-
-
-
-
-
+    def test_get_message_by_id(self):
+        users = MessageModelTestCase.init_users(2)
+        m1 = Message(text='blabla', sender_id=2, receiver_id=1)
+        m2 = Message(text='blabla2', sender_id=1, receiver_id=2)
+        db.session.add_all(users + [m1, m2])
+        db.session.commit()
+        self.assertEqual(Message.get_message_by_id(1), m1)
+        self.assertEqual(Message.get_message_by_id(2), m2)
+        with self.assertRaises(MessageNotFoundByIndexError):
+            Message.get_message_by_id(3)
