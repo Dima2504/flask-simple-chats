@@ -3,11 +3,13 @@ from flask_restful import abort
 from flask_restful import reqparse
 from flask import g
 from flask import current_app
+from flask import render_template
 from app.authentication.models import User
 from app.authentication.validators import validate_length, validate_email, validate_password_length
 from app.authentication.exceptions import ValidationError
 from app import db
 from .decorators import basic_or_bearer_authorization_required as authorization_required
+from itsdangerous import SignatureExpired, BadSignature
 
 
 class Register(Resource):
@@ -52,6 +54,46 @@ class Token(Resource):
         token = g.user.get_authentication_token()
         expires_in = current_app.config['AUTHENTICATION_TOKEN_DEFAULT_EXPIRES_IN']
         return {'token': token, 'expires_in': expires_in}
+
+
+class ForgotPassword(Resource):
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('email', type=str, required=True)
+        args = parser.parse_args()
+        email = args.get('email')
+        user = User.query.filter_by(email=email).first()
+        if user:
+            user.send_email('Flask simple chats reset password',
+                            render_template('authentication/emails/reset_password_rest.txt',
+                                            user=user, token=user.get_reset_password_token()))
+            return {'message': 'Check Your e-email to reset the password!'}, 200
+        else:
+            abort(400, message=f"User with e-mail '{email}' does not exist")
+
+
+class ResetPassword(Resource):
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('token', type=str, required=True)
+        parser.add_argument('password', type=str, required=True)
+        args = parser.parse_args()
+        user = None
+        try:
+            user = User.get_user_by_reset_password_token(args.get('token'))
+        except SignatureExpired:
+            abort(400, message='Reset password token has expired. Use a new one')
+        except BadSignature:
+            abort(400, message='Reset password token is not valid')
+        password = args.get('password')
+        try:
+            validate_password_length(password)
+        except ValidationError as e:
+            abort(400, message=e.message)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        return {'email': user.email, 'message': "Successfully reset"}, 202
 
 
 class Update(Resource):
