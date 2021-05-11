@@ -58,6 +58,8 @@ class Token(Resource):
 
 class ForgotPassword(Resource):
     def post(self):
+        """Works like authentication.forgot, so that user can receive a password reset token to his email if the
+        password is forgotten"""
         parser = reqparse.RequestParser()
         parser.add_argument('email', type=str, required=True)
         args = parser.parse_args()
@@ -74,6 +76,7 @@ class ForgotPassword(Resource):
 
 class ResetPassword(Resource):
     def post(self):
+        """Allows to reset the password with received password reset token"""
         parser = reqparse.RequestParser()
         parser.add_argument('token', type=str, required=True)
         parser.add_argument('password', type=str, required=True)
@@ -99,6 +102,7 @@ class ResetPassword(Resource):
 class Update(Resource):
     @authorization_required
     def post(self):
+        """Allows users to update common insensitive fields like `name` and `username`"""
         parser = reqparse.RequestParser()
         parser.add_argument('username', type=str)
         parser.add_argument('name', type=str)
