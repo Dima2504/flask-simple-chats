@@ -20,8 +20,8 @@ class Config:
     SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
     MAIL_SERVER = os.getenv('EMAIL_HOST') or 'smtp.gmail.com'
     MAIL_PORT = os.getenv('EMAIL_PORT') or '587'
-    MAIL_USERNAME = os.getenv('EMAIL_HOST_USER')
-    MAIL_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+    MAIL_USERNAME = os.getenv('EMAIL_USER')
+    MAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
     MAIL_USE_TLS = True
     MAIL_DEFAULT_SENDER = MAIL_USERNAME
     PASSWORD_DEFAULT_EXPIRES_IN = 1800
@@ -35,7 +35,7 @@ class Config:
 class TestConfig(Config):
     """
     Declares specific settings for testing.
-    Likely, you want to involve exactly sqlite database, so it will be created in :path:`../instance` to prevent from
+    Likely, you want to involve exactly sqlite database, so it will be created in a temporary path to prevent from
     checking in.
     """
     TESTING = True
