@@ -103,3 +103,4 @@ class ValidatorsTestCase(unittest.TestCase):
         error = ValidationError('Test case')
         self.assertTrue(isinstance(error, ValueError))
         self.assertTrue(hasattr(error, 'message'))
+        self.assertEqual(error.message, 'Test case')
