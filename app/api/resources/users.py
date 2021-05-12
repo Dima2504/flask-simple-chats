@@ -15,11 +15,11 @@ user_fields = {
     'date_joined': fields.DateTime()
 }
 users_list_fields = {
-    'current_user_id': fields.Integer,
+    'user_id': fields.Integer,
     'data': fields.List(fields.Nested(user_fields)),
 }
 user_single_fields = {
-    'current_user_id': fields.Integer,
+    'user_id': fields.Integer,
     'data': fields.Nested(user_fields),
 }
 
@@ -30,7 +30,7 @@ class UsersList(Resource):
     def get(self):
         users = db.session.query(User.user_id, User.username, User.name, User.date_joined)
         users = model_filter_by_get_params(User, users, request.args)
-        return {'current_user_id': g.user.user_id, 'data': users}, 200
+        return {'user_id': g.user.user_id, 'data': users}, 200
 
 
 class UserSingle(Resource):
@@ -38,4 +38,4 @@ class UserSingle(Resource):
     @marshal_with(user_single_fields)
     def get(self, user_id: int):
         user = return_user_or_abort(user_id)
-        return {'current_user_id': g.user.user_id, 'data': user}
+        return {'user_id': g.user.user_id, 'data': user}

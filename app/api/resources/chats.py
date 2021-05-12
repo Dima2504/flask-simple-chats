@@ -17,11 +17,11 @@ chat_fields = {
     'user2_id': fields.Integer,
 }
 chats_list_fields = {
-    'current_user_id': fields.Integer,
+    'user_id': fields.Integer,
     'data': fields.List(fields.Nested(chat_fields)),
 }
 chats_single_fields = {
-    'current_user_id': fields.Integer,
+    'user_id': fields.Integer,
     'data': fields.Nested(chat_fields),
 }
 
@@ -34,24 +34,26 @@ class ChatsList(Resource):
         current_user_id = g.user.user_id
         result = db.session.query(chats).filter(
             or_(chats.c.user1_id == current_user_id, chats.c.user2_id == current_user_id)).all()
-        return {'current_user_id': current_user_id, 'data': result}, 200
+        return {'user_id': current_user_id, 'data': result}, 200
 
     @authorization_required
     def post(self):
         """Creates a new chat between the current user and the users with the given in json id"""
         parser = reqparse.RequestParser()
-        parser.add_argument('user_id', required=True, type=int, help='User\'s id to create a chat with')
+        parser.add_argument('companion_id', required=True, type=int, help='User\'s id to create a chat with')
         args = parser.parse_args()
 
         current_user_id = g.user.user_id
-        user_id = args.get('user_id')
+        user_id = args.get('companion_id')
         return_user_or_abort(user_id)
         try:
             User.create_chat(current_user_id, user_id)
         except ChatAlreadyExistsError:
             abort(400, message=f'Your chat with the user {user_id} already exists')
         db.session.commit()
-        return {'current_user_id': current_user_id, 'message': 'Chat was successfully created'}, 201
+        return {'user_id': current_user_id, 'companion_id': user_id,
+                'chat_id': User.get_chat_id_by_users_ids(current_user_id, user_id),
+                'message': 'Chat was successfully created'}, 201
 
 
 class ChatSingle(Resource):
@@ -62,7 +64,7 @@ class ChatSingle(Resource):
         current_user_id = g.user.user_id
         chat = return_chat_or_abort(chat_id)
         abort_if_not_a_participant(current_user_id, chat)
-        return {'current_user_id': current_user_id, 'data': chat}
+        return {'user_id': current_user_id, 'data': chat}
 
     @authorization_required
     def delete(self, chat_id: int):
@@ -73,4 +75,4 @@ class ChatSingle(Resource):
         Message.delete_messages(chat_id=chat_id)
         User.delete_chat(chat_id=chat_id)
         db.session.commit()
-        return {'current_user_id': current_user_id, 'message': 'Chat was successfully deleted'}, 200
+        return {'user_id': current_user_id, 'chat_id': chat_id, 'message': 'Chat was successfully deleted'}, 200
