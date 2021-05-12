@@ -72,7 +72,7 @@ class RegisterView(MethodView):
         password2 = request.form['password2']
         try:
             validate_email(email)
-            validate_length(name, 3, 25, error_message='Please, input name with a length between 4 and 25 chars')
+            validate_length(name, 3, 25, error_message='Please, input name with a length between 3 and 25 chars')
             validate_equal_passwords(password1, password2)
             validate_password_length(password2)
         except ValidationError as e:
