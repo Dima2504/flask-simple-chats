@@ -4,4 +4,6 @@ python:
 install:
   - pip install -r requirements.txt
 script:
-  - flask tests
+  - coverage run --source=app -m unittest discover -s tests
+after_success:
+  - coveralls

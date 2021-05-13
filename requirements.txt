@@ -3,8 +3,13 @@ aniso8601==9.0.1
 astroid==2.5.6
 bidict==0.21.2
 blinker==1.4
+certifi==2020.12.5
+chardet==4.0.0
 click==8.0.0
+coverage==5.5
+coveralls==3.0.1
 dnspython==1.16.0
+docopt==0.6.2
 email-validator==1.1.2
 eventlet==0.31.0
 Flask==1.1.2
@@ -15,7 +20,7 @@ Flask-SocketIO==5.0.1
 Flask-SQLAlchemy==2.5.1
 Flask-WTF==0.14.3
 greenlet==1.1.0
-idna==3.1
+idna==2.10
 isort==5.8.0
 itsdangerous==2.0.0
 Jinja2==3.0.0
@@ -30,9 +35,11 @@ python-editor==1.0.4
 python-engineio==4.1.0
 python-socketio==5.2.1
 pytz==2021.1
+requests==2.25.1
 six==1.16.0
 SQLAlchemy==1.4.15
 toml==0.10.2
+urllib3==1.26.4
 Werkzeug==1.0.1
 wrapt==1.12.1
 WTForms==2.3.3
