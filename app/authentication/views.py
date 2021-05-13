@@ -1,26 +1,30 @@
-from app.authentication import authentication as auth_bp
-from app.authentication.models import User
-from app import db
-from flask import request
-from flask import redirect
-from flask import url_for
-from flask import session, g
-from flask import flash
-from flask import render_template
+"""Views to provide simple common authentication system and saving user id in a session"""
 from flask import abort
-from flask import current_app
+from flask import flash
+from flask import redirect
+from flask import render_template
+from flask import request
+from flask import session, g
+from flask import url_for
 from flask.views import MethodView
+from itsdangerous.exc import SignatureExpired, BadSignature
+
+from app import db
+from app.authentication import authentication as auth_bp
 from app.authentication.decorators import anonymous_required
+from app.authentication.exceptions import ValidationError
+from app.authentication.models import User
 from app.authentication.validators import validate_equal_passwords, validate_email, validate_password_length
 from app.authentication.validators import validate_length
-from app.authentication.exceptions import ValidationError
-from itsdangerous.exc import SignatureExpired, BadSignature
 
 
 @auth_bp.before_app_request
 def recognize_logged_in_user():
+    """Before each request to the server the function takes user id from the session, receives user instance by the id
+    and add him to flask application context variable. So, each view has an access to the current logged in user"""
     current_user_id = session.get('current_user_id')
-    g.user = User.get_user_by_id(current_user_id) if current_user_id is not None else None
+    user = User.get_user_by_id(current_user_id) if current_user_id is not None else None
+    setattr(g, 'user', user)
 
 
 class LoginView(MethodView):
@@ -75,8 +79,8 @@ class RegisterView(MethodView):
             validate_length(name, 3, 25, error_message='Please, input name with a length between 3 and 25 chars')
             validate_equal_passwords(password1, password2)
             validate_password_length(password2)
-        except ValidationError as e:
-            flash(e.message)
+        except ValidationError as error:
+            flash(error.message)
             return render_template('authentication/register.html')
 
         if User.query.filter_by(email=email).first():
@@ -106,8 +110,8 @@ class ForgotPasswordView(MethodView):
         email = request.form['email']
         try:
             validate_email(email)
-        except ValidationError as e:
-            flash(e.message)
+        except ValidationError as error:
+            flash(error.message)
             return render_template('authentication/forgot_password.html')
         user = User.query.filter_by(email=email).first()
         if user:
@@ -142,8 +146,8 @@ class ResetPasswordView(MethodView):
         try:
             validate_equal_passwords(password1, password2)
             validate_password_length(password2)
-        except ValidationError as e:
-            flash(e.message)
+        except ValidationError as error:
+            flash(error.message)
             return render_template('authentication/reset_password.html', user=user)
         user.set_password(password2)
         db.session.add(user)

@@ -1,15 +1,18 @@
+"""Api view related to authorization. Hera are: register view, get token view, forgot- reset- password views and update
+view, which allows to change your username and name"""
+from flask import current_app
+from flask import g
+from flask import render_template
 from flask_restful import Resource
 from flask_restful import abort
 from flask_restful import reqparse
-from flask import g
-from flask import current_app
-from flask import render_template
+from itsdangerous import SignatureExpired, BadSignature
+
+from app import db
+from app.authentication.exceptions import ValidationError
 from app.authentication.models import User
 from app.authentication.validators import validate_length, validate_email, validate_password_length
-from app.authentication.exceptions import ValidationError
-from app import db
 from .decorators import basic_or_bearer_authorization_required as authorization_required
-from itsdangerous import SignatureExpired, BadSignature
 
 
 class Register(Resource):
@@ -31,8 +34,8 @@ class Register(Resource):
             validate_length(username, 3, 25, error_message='Username length must be between 3 and 25 chars')
             validate_length(name, 3, 25, error_message='Name length must be between 3 and 25 chars')
             validate_password_length(password)
-        except ValidationError as e:
-            abort(400, message=e.message)
+        except ValidationError as error:
+            abort(400, message=error.message)
         if User.query.filter_by(email=email).first():
             abort(400, message=f"User '{email}' has been registered!")
         elif User.query.filter_by(username=username).first():
@@ -91,8 +94,8 @@ class ResetPassword(Resource):
         password = args.get('password')
         try:
             validate_password_length(password)
-        except ValidationError as e:
-            abort(400, message=e.message)
+        except ValidationError as error:
+            abort(400, message=error.message)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
@@ -119,14 +122,14 @@ class Update(Resource):
                 try:
                     validate_length(username, 3, 25, error_message='Username length must be between 3 and 25 chars')
                     user.username = username
-                except ValidationError as e:
-                    abort(400, message=e.message)
+                except ValidationError as error:
+                    abort(400, message=error.message)
         if name:
             try:
                 validate_length(name, 3, 25, error_message='Name length must be between 3 and 25 chars')
                 user.name = name
-            except ValidationError as e:
-                abort(400, message=e.message)
+            except ValidationError as error:
+                abort(400, message=error.message)
         db.session.add(user)
         db.session.commit()
         result = {}

@@ -1,9 +1,9 @@
 """This module supplies with view blueprint. It allows to make up general routs instead of
 typical :func:`app.route` in order to work with application factory properly"""
+from typing import Tuple
 from flask import render_template
 from flask import Blueprint
 from werkzeug.exceptions import NotFound
-from typing import Tuple
 
 view = Blueprint('view', __name__)
 
@@ -17,8 +17,8 @@ def index() -> str:
 
 
 @view.app_errorhandler(NotFound)
-def page_not_found(e: NotFound) -> Tuple[str, int]:
+def page_not_found(error: NotFound) -> Tuple[str, int]:
     """
     Handles 404 error.
     """
-    return render_template('404.html'), 404
+    return render_template('404.html'), error.code

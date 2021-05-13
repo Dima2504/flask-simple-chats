@@ -1,13 +1,17 @@
-from app import db
-from werkzeug.security import generate_password_hash, check_password_hash
+"""Main models to realize an authentication. Chats table is also specified here in order to prevent from circular
+import with app/chats/models.py"""
 import datetime
+from functools import lru_cache
+
+from flask import current_app
+from itsdangerous import TimedJSONWebSignatureSerializer
+from sqlalchemy import and_, exists
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from app import db
+from app.authentication.email import send_mail
 from app.authentication.exceptions import UserNotFoundByIndexError
 from app.chats.exceptions import ChatNotFoundByIndexesError, ChatAlreadyExistsError
-from itsdangerous import TimedJSONWebSignatureSerializer
-from flask import current_app
-from app.authentication.email import send_mail
-from sqlalchemy import and_, or_, exists
-from functools import lru_cache
 
 chats = db.Table('chats',
                  db.Column('chat_id', db.Integer, primary_key=True),
@@ -117,7 +121,8 @@ class User(db.Model):
         """Check if two users have chat together.
         :param user1_id: first user's id to check
         :param user2_id: second user's id to check
-        :returns boolean value: if it is true, users have already had chat together, if it is false - they have not had"""
+        :returns boolean value: if it is true, users have already had chat together.
+        If it is false - they have not had"""
         user1_id, user2_id = sorted([user1_id, user2_id])
         return db.session.query(
             exists(chats).where(and_(chats.c.user1_id == user1_id, chats.c.user2_id == user2_id))).scalar()
@@ -169,4 +174,3 @@ class User(db.Model):
         serializer = TimedJSONWebSignatureSerializer(current_app.config['SECRET_KEY'])
         user_id = serializer.loads(token)['user_id']
         return User.get_user_by_id(user_id)
-

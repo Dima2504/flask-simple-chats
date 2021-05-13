@@ -1,15 +1,18 @@
-from sqlalchemy.engine.row import Row
-from app.authentication.models import User, chats
-from app.authentication.exceptions import UserNotFoundByIndexError
-from app.chats.models import Message
-from app.chats.exceptions import MessageNotFoundByIndexError
-from flask_restful import abort
-from app import db
-from sqlalchemy.sql.sqltypes import String
-from sqlalchemy import desc
-from flask_sqlalchemy.model import DefaultMeta
-from flask_sqlalchemy import BaseQuery
+"""Essential and repetitive utils for rest api views"""
 from typing import Any
+
+from flask_restful import abort
+from flask_sqlalchemy import BaseQuery
+from flask_sqlalchemy.model import DefaultMeta
+from sqlalchemy import desc
+from sqlalchemy.engine.row import Row
+from sqlalchemy.sql.sqltypes import String
+
+from app import db
+from app.authentication.exceptions import UserNotFoundByIndexError
+from app.authentication.models import User, chats
+from app.chats.exceptions import MessageNotFoundByIndexError
+from app.chats.models import Message
 
 
 def model_filter_by_get_params(model: DefaultMeta, query: BaseQuery, args: dict) -> BaseQuery:
@@ -49,19 +52,19 @@ def model_filter_by_get_params(model: DefaultMeta, query: BaseQuery, args: dict)
     :rtype: BaseQuery
     """
     model_columns = model.__table__.c.keys()
-    for k, v in args.items():
-        if k == 'ordered-by':
-            if v in model_columns:
-                query = query.order_by(getattr(model, v))
-        elif k == 'ordered-by-desc':
-            if v in model_columns:
-                query = query.order_by(desc(getattr(model, v)))
-        elif k.endswith('-like'):
-            attr = k.split('-like')[0]
+    for key, value in args.items():
+        if key == 'ordered-by':
+            if value in model_columns:
+                query = query.order_by(getattr(model, value))
+        elif key == 'ordered-by-desc':
+            if value in model_columns:
+                query = query.order_by(desc(getattr(model, value)))
+        elif key.endswith('-like'):
+            attr = key.split('-like')[0]
             if attr in model_columns and isinstance(model.__table__.c.get(attr).type, String):
-                query = query.filter(getattr(model, attr).ilike(f'%{v}%'))
-        elif k in model_columns:
-            query = query.filter(getattr(model, k) == v)
+                query = query.filter(getattr(model, attr).ilike(f'%{value}%'))
+        elif key in model_columns:
+            query = query.filter(getattr(model, key) == value)
     if 'limit' in args:
         query = query.limit(int(args.get('limit')))
     if 'offset' in args:

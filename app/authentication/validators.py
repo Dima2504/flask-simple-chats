@@ -1,14 +1,16 @@
-from app.authentication.exceptions import ValidationError
-from email_validator import validate_email as val_em
+"""Custom validators to provide with a simple secure from the wrong data for auth system"""
 from email_validator import EmailNotValidError
+from email_validator import validate_email as val_em
 from flask import current_app
+
+from app.authentication.exceptions import ValidationError
 
 
 def validate_equal_passwords(password1: str, password2: str):
     """Compares two passwords and raises validation error if aren't equal"""
     if len(password1) != len(password2):
         raise ValidationError("Given passwords don't match")
-    elif not password1 == password2:
+    if not password1 == password2:
         raise ValidationError("Given passwords don't match")
 
 
@@ -16,8 +18,8 @@ def validate_email(email: str):
     """Delegate all the responsibility into email validator library from PyPi"""
     try:
         val_em(email)
-    except EmailNotValidError:
-        raise ValidationError(f"E-mail '{email}' is not valid")
+    except EmailNotValidError as error:
+        raise ValidationError(f"E-mail '{email}' is not valid") from error
 
 
 def validate_password_length(password: str, min_length: int = None):
@@ -42,5 +44,5 @@ def validate_length(string: str, min_length: int, max_length: int, error_message
     :param error_message: message to be shown if the validations fails
     :type error_message: str
     """
-    if not (min_length <= len(string) <= max_length):
+    if not min_length <= len(string) <= max_length:
         raise ValidationError(error_message or 'The given string is not match the necessary length')

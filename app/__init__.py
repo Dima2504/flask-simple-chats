@@ -1,12 +1,15 @@
 """Initial module according to the flask factory pattern"""
 import os
-from .config import Config
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_mail import Mail
 from flask_socketio import SocketIO
 from flask_wtf.csrf import CSRFProtect
+
+from .config import Config
+
 
 db = SQLAlchemy()
 migrate = Migrate()

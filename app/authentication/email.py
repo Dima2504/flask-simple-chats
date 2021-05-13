@@ -1,9 +1,14 @@
+"""Module with functions to send email. There are two functions which send using python built-in libraries and two
+ones which use flask-mail. All them send message in a separate thread to prevent from blocking. It is strongly
+recommended to use flask-mail implementation."""
 import smtplib
-from flask import current_app
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from threading import Thread
+
+from flask import current_app
 from flask_mail import Message
+
 from app import mail
 
 
@@ -23,7 +28,7 @@ def _send_mail_pure(app: object, server: smtplib.SMTP, from_addr: str, to_addr: 
     server.close()
 
 
-def build_message_pure(from_addr: str, to_addr:str, subject: str, text:str) -> str:
+def build_message_pure(from_addr: str, to_addr:str, subject: str, text: str) -> str:
     """
     Creates correct message according to the format.
     """

@@ -1,15 +1,17 @@
+"""Declaration of chats resource and its addition clauses"""
+from flask import g
 from flask_restful import Resource
 from flask_restful import abort
-from flask_restful import reqparse
 from flask_restful import fields, marshal_with
+from flask_restful import reqparse
+from sqlalchemy import or_
+
+from app import db
 from app.api.decorators import basic_or_bearer_authorization_required as authorization_required
+from app.api.utils import return_user_or_abort, return_chat_or_abort, abort_if_not_a_participant
 from app.authentication.models import chats, User
 from app.chats.exceptions import ChatAlreadyExistsError
 from app.chats.models import Message
-from app import db
-from flask import g
-from sqlalchemy import or_
-from app.api.utils import return_user_or_abort, return_chat_or_abort, abort_if_not_a_participant
 
 chat_fields = {
     'chat_id': fields.Integer,

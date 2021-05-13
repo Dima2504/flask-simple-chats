@@ -1,9 +1,11 @@
+"""Common decorators for auth views"""
 import functools
+
+from flask import flash
 from flask import g
 from flask import redirect
-from flask import url_for
-from flask import flash
 from flask import request
+from flask import url_for
 
 
 def login_required(func):

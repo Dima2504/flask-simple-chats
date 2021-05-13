@@ -1,8 +1,10 @@
 """Necessary database tables to provide minimal chats application"""
-from app import db
 import datetime
-from app.authentication.models import User
+
 from sqlalchemy import delete
+
+from app import db
+from app.authentication.models import User
 from .exceptions import MessageNotFoundByIndexError
 
 

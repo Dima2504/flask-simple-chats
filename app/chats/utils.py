@@ -1,9 +1,12 @@
+"""Necessary utils for the chats blueprint"""
 import functools
+
+from flask_sqlalchemy import BaseQuery
 from sqlalchemy import or_, desc, case, func, and_
+
+from app import db
 from app.authentication.models import User
 from app.chats.models import Message
-from app import db
-from flask_sqlalchemy import BaseQuery
 
 
 @functools.lru_cache(maxsize=256)
@@ -72,9 +75,9 @@ def search_for_users_by(search_string: str, current_user_id: int = None) -> Base
     """
     search_strings = search_string.strip().split()
     or_params = []
-    for search_string in search_strings:
-        or_params.append(User.name.ilike(f'%{search_string}%'))
-        or_params.append(User.username.ilike(f'%{search_string}%'))
+    for string in search_strings:
+        or_params.append(User.name.ilike(f'%{string}%'))
+        or_params.append(User.username.ilike(f'%{string}%'))
     or_stmt = or_(*or_params)
     if not current_user_id:
         result = db.session.query(User.name, User.username).where(or_stmt).order_by(desc(User.date_joined))

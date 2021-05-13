@@ -1,20 +1,22 @@
-from app.chats import chats as chats_bp
-from app.chats.utils import search_for_users_by
-from flask.views import MethodView
-from app.authentication.decorators import login_required
-from app import db
-from app.authentication import User
+"""All the views related to the chats blueprint"""
+from flask import abort
 from flask import current_app
 from flask import g
-from flask import session
-from flask import render_template
-from flask import abort
-from flask import redirect
-from flask import url_for
-from flask import request
 from flask import jsonify
-from .utils import get_users_unique_room_name
+from flask import redirect
+from flask import render_template
+from flask import request
+from flask import session
+from flask import url_for
+from flask.views import MethodView
+
+from app import db
+from app.authentication import User
+from app.authentication.decorators import login_required
+from app.chats import chats as chats_bp
+from app.chats.utils import search_for_users_by
 from .utils import get_user_chats_and_last_messages
+from .utils import get_users_unique_room_name
 
 
 class UserSearchForChat(MethodView):
@@ -53,7 +55,8 @@ class UserChatsList(MethodView):
         user = g.user
         current_page_num = request.args.get('page_num', default=1, type=int)
         chats_per_page = current_app.config['CHATS_PER_PAGE']
-        paginator = get_user_chats_and_last_messages(user.user_id).paginate(current_page_num, chats_per_page, error_out=False)
+        paginator = get_user_chats_and_last_messages(user.user_id).paginate(current_page_num, chats_per_page,
+                                                                            error_out=False)
         users_last_chats_info = paginator.items
         return render_template('chats/list.html', users_last_chats_info=users_last_chats_info, paginator=paginator)
 

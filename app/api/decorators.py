@@ -1,10 +1,13 @@
+"""Decorators for api views. Here is only one decorator which requires authorization"""
 from functools import wraps
+
+from flask import g
 from flask import request
 from flask_restful import abort
-from flask import g
-from app.authentication.models import User
-from sqlalchemy import or_
 from itsdangerous import BadSignature, SignatureExpired
+from sqlalchemy import or_
+
+from app.authentication.models import User
 
 
 def basic_or_bearer_authorization_required(func):
@@ -23,7 +26,7 @@ def basic_or_bearer_authorization_required(func):
             elif not user.verify_password(password):
                 abort(401, message='Wrong password! Try again')
             else:
-                g.user = user
+                setattr(g, 'user', user)
                 return func(*args, **kwargs)
         else:
             header = request.headers.get('Authorization')
@@ -37,7 +40,7 @@ def basic_or_bearer_authorization_required(func):
                         abort(401, message='Your authentication token period has expired')
                     except BadSignature:
                         abort(401, message='Authentication token is not valid')
-                    g.user = user
+                    setattr(g, 'user', user)
                     return func(*args, **kwargs)
         abort(403, message='To access use Basic (base64) or Bearer (jwt) http authorization')
     return wrapper
