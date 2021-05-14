@@ -9,9 +9,9 @@ from app.authentication.exceptions import ValidationError
 def validate_equal_passwords(password1: str, password2: str):
     """Compares two passwords and raises validation error if aren't equal"""
     if len(password1) != len(password2):
-        raise ValidationError("Given passwords don't match")
+        raise ValidationError("Given passwords do not match")
     if not password1 == password2:
-        raise ValidationError("Given passwords don't match")
+        raise ValidationError("Given passwords do not match")
 
 
 def validate_email(email: str):
