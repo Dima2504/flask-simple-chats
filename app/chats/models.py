@@ -5,6 +5,7 @@ from sqlalchemy import delete
 
 from app import db
 from app.authentication.models import User
+from . import logger
 from .exceptions import MessageNotFoundByIndexError
 
 
@@ -26,12 +27,14 @@ class Message(db.Model):
         sender_id = kwargs.get('sender_id')
         receiver_id = kwargs.get('receiver_id')
         if not User.is_chat_between(sender_id, receiver_id):
+            logger.info('Message __init__ is making a chat between users')
             User.create_chat(sender_id, receiver_id)
         if 'chat_id' not in kwargs:
             self.chat_id = User.get_chat_id_by_users_ids(sender_id, receiver_id)
         else:
-            assert kwargs['chat_id'] == User.get_chat_id_by_users_ids(sender_id,
-                                                                      receiver_id), 'Not acceptable at all!!!'
+            if not kwargs.get('chat_id') == User.get_chat_id_by_users_ids(sender_id, receiver_id):
+                logger.critical("Chat id in message __init__ turned out to be wrong somehow")
+                raise AssertionError
         super().__init__(*args, **kwargs)
 
     @staticmethod
@@ -47,11 +50,13 @@ class Message(db.Model):
         """
         chat_id = chat_id or User.get_chat_id_by_users_ids(*two_users_ids)
         db.session.execute(delete(Message).where(Message.chat_id == chat_id))
+        logger.warning(f"All the messages between {two_users_ids} were deleted")
 
     @classmethod
     def get_message_by_id(cls, message_id: int) -> 'Message':
         """Return a certain message instance with given id if exists, else - raise error"""
         message = cls.query.get(message_id)
         if not message:
+            logger.info('Message was not found by index')
             raise MessageNotFoundByIndexError
         return message

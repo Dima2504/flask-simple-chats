@@ -1,7 +1,12 @@
 """Initialization of actually the main chats blueprint."""
+import logging
+
 from flask import Blueprint
 
 chats = Blueprint('chats', __name__, url_prefix='/chats')
+logger = logging.getLogger(__name__)
+logger.info('Chats blueprint is being loaded')
+
 
 from .models import Message
 from .views import UserChatsList, UserChatBegin, UsersChatGoing, UserChatEnd, UserSearchForChat

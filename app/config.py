@@ -1,4 +1,5 @@
 """Base config module"""
+import logging.config
 import os
 
 
@@ -31,6 +32,76 @@ class Config:
     AUTHENTICATION_TOKEN_DEFAULT_EXPIRES_IN = 3600
     BUNDLE_ERRORS = True
 
+    LOGGING = True
+    LOGGING_CONFIG = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'standard': {
+                'format': '[%(asctime)s] - %(name)s - %(levelname)s - %(message)s - [%(pathname)s:%(lineno)d]'
+            },
+        },
+        'handlers': {
+            'file': {
+                'class': 'logging.handlers.RotatingFileHandler',
+                'level': 'DEBUG',
+                'formatter': 'standard',
+                'filename': 'logs/app.log',
+                'mode': 'a',
+                'maxBytes': 10000000,
+                'backupCount': 5,
+            },
+            'mail': {
+                'class': 'logging.handlers.SMTPHandler',
+                'level': 'ERROR',
+                'mailhost': (MAIL_SERVER, MAIL_PORT),
+                'fromaddr': MAIL_USERNAME,
+                'toaddrs': [os.getenv('EMAIL', default='some_email@gmail.com'), MAIL_USERNAME],
+                'subject': 'Houston, we have a problem!',
+                'credentials': (MAIL_USERNAME, MAIL_PASSWORD),
+                'secure': (),
+            },
+        },
+        'loggers': {
+            'app': {
+                'level': 'INFO',
+                'handlers': ['file', 'mail', ],
+            },
+            'app.api': {
+                'level': 'INFO',
+                'handlers': ['file', 'mail', ],
+            },
+            'app.authentication': {
+                'level': 'INFO',
+                'handlers': ['file', 'mail', ],
+            },
+            'app.chats': {
+                'level': 'INFO',
+                'handlers': ['file', 'mail', ],
+            },
+        },
+    }
+
+    @classmethod
+    def configure_logging(cls):
+        """Applies logging dict config and creates necessary directories if they do not exist"""
+        os.makedirs('logs', exist_ok=True)
+        try:
+            logging.config.dictConfig(cls.LOGGING_CONFIG)
+            logging.getLogger('app').info('Logging config was loaded')
+        except AttributeError as error:
+            raise RuntimeError('To configure logging you must first declare "LOGGING_CONFIG" variable') from error
+
+    @classmethod
+    def disable_configured_loggers(cls):
+        """Disables all the configured here loggers. It is useful for testing"""
+        if hasattr(cls, 'LOGGING_CONFIG'):
+            loggers = getattr(cls, 'LOGGING_CONFIG').get('loggers')
+            if loggers:
+                logging.getLogger('app').info('Configured loggers are being disabled')
+                for logger_name in loggers:
+                    logging.getLogger(logger_name).disabled = True
+
 
 class TestConfig(Config):
     """
@@ -39,6 +110,7 @@ class TestConfig(Config):
     checking in.
     """
     TESTING = True
+    LOGGING = False
     TEST_DB_PATH = os.getenv('TEST_DB_PATH') or '/tmp'
     TEST_DB_NAME = os.getenv('TEST_DB_NAME') or 'chats_test_db.sqlite'
     SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(TEST_DB_PATH, TEST_DB_NAME)}'

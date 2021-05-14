@@ -15,6 +15,7 @@ from app.authentication import User
 from app.authentication.decorators import login_required
 from app.chats import chats as chats_bp
 from app.chats.utils import search_for_users_by
+from . import logger
 from .utils import get_user_chats_and_last_messages
 from .utils import get_users_unique_room_name
 
@@ -23,6 +24,7 @@ class UserSearchForChat(MethodView):
     decorators = [login_required]
 
     def get(self):
+        """Renders template where user can look for companions"""
         return render_template('chats/search.html')
 
 
@@ -37,6 +39,7 @@ def ajax_search():
     """
     x_requested_with = request.headers.get('X-Requested-With', default='')
     if x_requested_with != 'XMLHttpRequest':
+        logger.warning('Someone tried to make request to ajax_search without XMLHttpRequest value in a header')
         abort(404, description='Allowed only for ajax')
 
     current_user_id = g.user.user_id
@@ -75,6 +78,7 @@ class UserChatBegin(MethodView):
         try:
             room_name = get_users_unique_room_name(user.username, companion_username)
         except ValueError:
+            logger.error('Two equal usernames were given to get_users_unique_room_name function somehow')
             abort(404)
         session['room_name'] = room_name
         session['user_name'] = user.name
@@ -104,6 +108,7 @@ class UsersChatGoing(MethodView):
         companion_id = session.get('companion_id')
         companion_user_name = db.session.query(User.name).filter(User.user_id == companion_id).scalar()
         if user_name is None or room_name is None or companion_id is None:
+            logger.warning("Someone tried to visit /chats/going directly without /chats/begin")
             abort(404)
 
         return render_template('chats/going.html', companion_user_name=companion_user_name)

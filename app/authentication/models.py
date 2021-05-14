@@ -12,6 +12,7 @@ from app import db
 from app.authentication.email import send_mail
 from app.authentication.exceptions import UserNotFoundByIndexError
 from app.chats.exceptions import ChatNotFoundByIndexesError, ChatAlreadyExistsError
+from . import logger
 
 chats = db.Table('chats',
                  db.Column('chat_id', db.Integer, primary_key=True),
@@ -32,6 +33,11 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     date_joined = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
+    @property
+    def password(self):
+        logger.warning("Someone tried to read user's password")
+        raise AttributeError('Password cannot be read')
+
     def set_password(self, password: str):
         """Hashes user password using werkzeug method and saves it into the appropriate attribute"""
         self.password_hash = generate_password_hash(password)
@@ -48,6 +54,7 @@ class User(db.Model):
         """Return user with given id if exists, else - raise error"""
         user = cls.query.get(user_id)
         if not user:
+            logger.info('User was not found by index')
             raise UserNotFoundByIndexError
         return user
 
@@ -97,6 +104,7 @@ class User(db.Model):
                 values=[{'user1_id': user1_id, 'user2_id': user2_id}, ]))
             User.is_chat_between.cache_clear()
         else:
+            logger.info("Chat already exists when create_chat method is executed")
             raise ChatAlreadyExistsError
 
     @staticmethod
@@ -143,6 +151,7 @@ class User(db.Model):
         chat_id = db.session.query(chats.c.chat_id).filter(
             and_(chats.c.user1_id == user1_id, chats.c.user2_id == user2_id)).scalar()
         if not chat_id:
+            logger.warning('Chat must be found by index, but it is not')
             raise ChatNotFoundByIndexesError
         return chat_id
 

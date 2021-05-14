@@ -10,6 +10,7 @@ from flask import current_app
 from flask_mail import Message
 
 from app import mail
+from . import logger
 
 
 def _send_mail_pure(app: object, server: smtplib.SMTP, from_addr: str, to_addr: str, message: str):
@@ -53,6 +54,7 @@ def send_mail_pure(to_addr: str, subject: str, text: str) -> Thread:
     :return: the instance of started thread
     :rtype: Thread
     """
+    logger.warning('Someone uses send mail pure realization')
     mail_host = current_app.config['MAIL_SERVER']
     mail_port = current_app.config['MAIL_PORT']
     mail_username = current_app.config['MAIL_USERNAME']

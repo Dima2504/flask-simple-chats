@@ -1,21 +1,25 @@
 """Initial module according to the flask factory pattern"""
+import logging
 import os
 
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 from flask_mail import Mail
+from flask_migrate import Migrate
 from flask_socketio import SocketIO
+from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 
 from .config import Config
-
 
 db = SQLAlchemy()
 migrate = Migrate()
 mail = Mail()
 socket_io = SocketIO()
 csrf = CSRFProtect()
+
+# Official documentation recommends to configure logging before creating the main app instance
+Config.configure_logging()
+logger = logging.getLogger(__name__)
 
 import app.chats.events
 
@@ -44,6 +48,9 @@ def make_app(test_config: object = None) -> Flask:
     else:
         app.config.from_pyfile('production_config.py', silent=True)
     os.makedirs(app.instance_path, exist_ok=True)
+
+    if not app.config['LOGGING']:
+        Config.disable_configured_loggers()
 
     db.init_app(app)
     migrate.init_app(app, db)

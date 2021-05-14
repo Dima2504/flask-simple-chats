@@ -1,8 +1,12 @@
 """Init authentication blueprint which starts from host:port/authentication/"""
+import logging
+
 from flask import Blueprint
 from flask import g
 
 authentication = Blueprint('authentication', __name__, url_prefix='/authentication')
+logger = logging.getLogger(__name__)
+logger.info('Authentication blueprint is being loaded')
 
 
 @authentication.app_context_processor
