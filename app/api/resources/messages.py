@@ -67,8 +67,6 @@ class ChatMessagesList(Resource):
             db.session.commit()
             return {'user_id': current_user_id, 'chat_id': chat_id,
                     'message': f"Your message{'s were' if len(args['texts']) > 1 else ' was'} successfully sent"}, 201
-        else:
-            abort(400, message='It is necessary to put at least one message text')
 
 
 class ChatMessageSingle(Resource):
