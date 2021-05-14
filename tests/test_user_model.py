@@ -1,20 +1,23 @@
-import unittest
-from app import make_app
-from app import db
-from app import mail
-from app.config import TestConfig
-from app.authentication import User
-from app.authentication.exceptions import UserNotFoundByIndexError
-from app.chats.exceptions import ChatAlreadyExistsError, ChatNotFoundByIndexesError
-from app.authentication.models import chats
-from sqlalchemy.sql import select
-from itsdangerous.exc import SignatureExpired, BadSignature
 import os
 import time
+import unittest
+
+from itsdangerous.exc import SignatureExpired, BadSignature
+from sqlalchemy.sql import select
+
+from app import db
+from app import mail
+from app import make_app
+from app.authentication import User
+from app.authentication.exceptions import UserNotFoundByIndexError
+from app.authentication.models import chats
+from app.chats.exceptions import ChatAlreadyExistsError, ChatNotFoundByIndexesError
+from app.config import TestConfig
 
 
 class UserModelTestCase(unittest.TestCase):
     """Tests for main user model"""
+
     def setUp(self) -> None:
         self.app = make_app(TestConfig)
         self.app_context = self.app.app_context()
@@ -39,6 +42,15 @@ class UserModelTestCase(unittest.TestCase):
         self.assertEqual(User.get_user_by_id(2), user2)
         with self.assertRaises(UserNotFoundByIndexError):
             User.get_user_by_id(3)
+
+    def test_password_not_readable(self):
+        user = User(email='user1@gmail.com', username='user1')
+        with self.assertRaises(AttributeError):
+            _ = user.password
+
+    def test_user_repr(self):
+        user = User(email='user1@gmail.com', username='user1')
+        self.assertEqual(user.__repr__(), 'User - user1')
 
     def test_set_password(self):
         user = User(email='user@gmail.com', username='user')
@@ -191,4 +203,3 @@ class UserModelTestCase(unittest.TestCase):
         time.sleep(2)
         with self.assertRaises(SignatureExpired):
             User.get_user_by_authentication_token(token_expired)
-

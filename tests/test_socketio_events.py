@@ -1,17 +1,18 @@
-from app import make_app
-from app import socket_io
-from app import db
-from app.config import TestConfig
-from app.chats import Message
-from app.authentication.models import chats, User
-import unittest
 import time
-import random
+import unittest
 from datetime import datetime
+from typing import Tuple
+
 from flask.testing import FlaskClient
 from flask_socketio import SocketIOTestClient
-from typing import Tuple
 from sqlalchemy import select
+
+from app import db
+from app import make_app
+from app import socket_io
+from app.authentication.models import chats, User
+from app.chats import Message
+from app.config import TestConfig
 
 
 class SocketIOEventsTestCase(unittest.TestCase):
@@ -209,7 +210,7 @@ class SocketIOEventsTestCase(unittest.TestCase):
             socket_io_client1.get_received(namespace=self.events_namespace)
             socket_io_client2.get_received(namespace=self.events_namespace)
 
-            number_of_messages = random.randint(0, 15)
+            number_of_messages = 15
             db.session.add_all(
                 [Message(text=str(figure), sender_id=1, receiver_id=2) for figure in range(number_of_messages)])
             db.session.commit()
@@ -229,7 +230,7 @@ class SocketIOEventsTestCase(unittest.TestCase):
                 self.assertEqual(received_data['messages_number'],
                                  number_of_messages - messages_offset if number_of_messages - messages_offset <= messages_limit else messages_limit)
 
-            messages_offset = random.randint(0, number_of_messages)
+            messages_offset = 10
             socket_io_client1.emit('get_more_messages', {'messages_offset': messages_offset},
                                    namespace=self.events_namespace)
             received1 = socket_io_client1.get_received(self.events_namespace)
@@ -239,7 +240,7 @@ class SocketIOEventsTestCase(unittest.TestCase):
                 self.assertTrue(message['is_current_user'])
                 self.assertEqual(message['message_text'], str(message_text))
 
-            messages_offset = random.randint(0, number_of_messages)
+            messages_offset = 10
             socket_io_client2.emit('get_more_messages', {'messages_offset': messages_offset},
                                    namespace=self.events_namespace)
             received2 = socket_io_client2.get_received(self.events_namespace)

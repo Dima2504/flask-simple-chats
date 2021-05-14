@@ -1,14 +1,15 @@
+import os
 import unittest
-from app import make_app
+from datetime import datetime
+
 from app import db
-from app.config import TestConfig
-from app.chats.utils import get_users_unique_room_name as get_rn
-from app.chats.utils import get_user_chats_and_last_messages as get_uc
-from app.chats.utils import search_for_users_by
+from app import make_app
 from app.authentication.models import User
 from app.chats.models import Message
-import os
-from datetime import datetime
+from app.chats.utils import get_user_chats_and_last_messages as get_uc
+from app.chats.utils import get_users_unique_room_name as get_rn
+from app.chats.utils import search_for_users_by
+from app.config import TestConfig
 
 
 class UtilsTestCase(unittest.TestCase):

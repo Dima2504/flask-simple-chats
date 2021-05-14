@@ -1,13 +1,16 @@
-import unittest
-from flask import current_app
-from app import mail
-from app.authentication.models import User, chats
-from app.chats.models import Message
-from app import make_app
-from app import db
-from app.config import TestConfig
 import base64
 import re
+import time
+import unittest
+
+from flask import current_app
+
+from app import db
+from app import mail
+from app import make_app
+from app.authentication.models import User, chats
+from app.chats.models import Message
+from app.config import TestConfig
 
 
 class ApiClientTestCase(unittest.TestCase):
@@ -77,6 +80,42 @@ class ApiClientTestCase(unittest.TestCase):
                                                                 'name': 'test', 'password': 'gfd'})
         self.assertEqual(response.status_code, 400)
 
+    def test_basic_or_bearer_authorization_required(self):
+        self.init_main_user()
+        user = User.get_user_by_id(1)
+        basic = {'Authorization': f'Basic {base64.b64encode(f"{user.email}:12345678".encode()).decode()}'}
+        self.assertEqual(self.test_client.get('/api/token', headers=basic).status_code, 200)
+
+        basic_not_existing_email = {
+            'Authorization': f'Basic {base64.b64encode(f"some@gmail.com:12345678".encode()).decode()}'}
+        response = self.test_client.get('/api/token', headers=basic_not_existing_email)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json['message'], 'Wrong login! Maybe, you have not been registered')
+
+        basic_wrong_password = {
+            'Authorization': f'Basic {base64.b64encode(f"{user.email}:wrong".encode()).decode()}'}
+        response = self.test_client.get('/api/token', headers=basic_wrong_password)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json['message'], 'Wrong password! Try again')
+
+        token = user.get_authentication_token(0.5)
+        time.sleep(1)
+        bearer_expired_token = {'Authorization': f'Bearer {token}'}
+        response = self.test_client.get('/api/token', headers=bearer_expired_token)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json['message'], 'Your authentication token period has expired')
+
+        token = user.get_authentication_token()
+        bearer_bad_token = {'Authorization': f'Bearer {token + "salt"}'}
+        response = self.test_client.get('/api/token', headers=bearer_bad_token)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json['message'], 'Authentication token is not valid')
+
+        response_without_auth = self.test_client.get('/api/token')
+        self.assertEqual(response_without_auth.status_code, 403)
+        self.assertEqual(response_without_auth.json['message'],
+                         'To access use Basic (base64) or Bearer (jwt) http authorization')
+
     def test_token(self):
         self.test_client.post('/api/register', json={'email': 'test@gmail.com', 'username': 'test_username',
                                                      'name': 'test_name', 'password': '12345678'})
@@ -105,6 +144,29 @@ class ApiClientTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 202)
         self.assertEqual(response.json['email'], user.email)
         self.assertTrue(user.verify_password('87654321'))
+
+        response_not_existing_email = self.test_client.post('/api/forgot-password', json={'email': 'wrong@gmail.com'})
+        self.assertEqual(response_not_existing_email.status_code, 400)
+        self.assertEqual(response_not_existing_email.json['message'],
+                         "User with e-mail 'wrong@gmail.com' does not exist")
+
+    def test_forgot_password_expired_and_bad_token(self):
+        self.init_main_user()
+        user = User.get_user_by_id(1)
+        token = user.get_reset_password_token(0.5)
+        time.sleep(1)
+        response = self.test_client.post('/api/reset-password', json={'token': token, 'password': '87654321'})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['message'], 'Reset password token has expired. Use a new one')
+
+        token = user.get_reset_password_token()
+        response = self.test_client.post('/api/reset-password', json={'token': token + 'salt', 'password': '87654321'})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['message'], 'Reset password token is not valid')
+
+        response = self.test_client.post('/api/reset-password', json={'token': token, 'password': '87'})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['message'], 'Password is too short')
 
     def test_update(self):
         self.init_main_user()
@@ -136,6 +198,21 @@ class ApiClientTestCase(unittest.TestCase):
                                          headers=self.bearer_auth_header)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json['message'], 'Nothing was updated')
+
+    def test_update_errors(self):
+        self.init_main_user()
+        self.register_users(1)
+        response = self.test_client.post('/api/update', json={'username': 'username1'}, headers=self.basic_auth_header)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['message'], "Username 'username1' is busy! Try putting another one")
+
+        response = self.test_client.post('/api/update', json={'username': 'us'}, headers=self.basic_auth_header)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['message'], "Username length must be between 3 and 25 chars")
+
+        response = self.test_client.post('/api/update', json={'name': 'us'}, headers=self.basic_auth_header)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['message'], "Name length must be between 3 and 25 chars")
 
     def test_users_list(self):
         self.register_users(5)

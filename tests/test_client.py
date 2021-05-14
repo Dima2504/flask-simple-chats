@@ -1,15 +1,18 @@
-from app import make_app
+import re
+import time
+import unittest
+
+from flask import get_flashed_messages
+from flask import session
+from sqlalchemy.sql import exists
+
 from app import db
 from app import mail
-from app.config import TestConfig
+from app import make_app
 from app.authentication.models import User
 from app.chats.models import Message
 from app.chats.utils import get_users_unique_room_name
-from flask import session
-from flask import get_flashed_messages
-from sqlalchemy.sql import exists
-import unittest
-import re
+from app.config import TestConfig
 
 
 class ClientTestCase(unittest.TestCase):
@@ -40,6 +43,30 @@ class ClientTestCase(unittest.TestCase):
         self.assertEqual(user.name, 'Ann')
         self.assertTrue(user.verify_password('Who am I'))
 
+        response_invalid_data = self.test_client.post('/authentication/register',
+                                                      data={'email': 'test2@gmail.com', 'username': 'test_user2',
+                                                            'name': 'Ann', 'password1': 'Who I',
+                                                            'password2': 'Who am I'},
+                                                      follow_redirects=True)
+        self.assertTrue("Given passwords do not match" in response_invalid_data.data.decode())  # flashed message
+        self.assertTrue('<title>Register</title>' in response_invalid_data.data.decode())
+
+        response_existing_email = self.test_client.post('/authentication/register',
+                                                        data={'email': 'test@gmail.com', 'username': 'test_user2',
+                                                              'name': 'Ann', 'password1': 'Who am I',
+                                                              'password2': 'Who am I'},
+                                                        follow_redirects=True)
+        self.assertEqual(response_existing_email.status_code, 200)
+        self.assertTrue('<title>Register</title>' in response_existing_email.data.decode())
+
+        response_existing_username = self.test_client.post('/authentication/register',
+                                                           data={'email': 'test2@gmail.com', 'username': 'test_user',
+                                                                 'name': 'Ann', 'password1': 'Who am I',
+                                                                 'password2': 'Who am I'},
+                                                           follow_redirects=True)
+        self.assertEqual(response_existing_username.status_code, 200)
+        self.assertTrue("<title>Register</title>" in response_existing_username.data.decode())
+
     def test_login_logout(self):
         with self.test_client as client:
             client.post('/authentication/register',
@@ -52,12 +79,24 @@ class ClientTestCase(unittest.TestCase):
                                                                         'password': 'Who am I'},
                                          follow_redirects=True)
             self.assertEqual(response_login.status_code, 200)
-            self.assertTrue('<title>Simple chats</title>', response_login.data.decode())
+            self.assertTrue('<title>Simple chats</title>' in response_login.data.decode())
             self.assertTrue('current_user_id' in session)
 
             response_logout = client.get('/authentication/logout', follow_redirects=True)
             self.assertEqual(response_logout.status_code, 200)
             self.assertFalse('current_user_id' in session)
+
+            response_wrong_email = client.post('/authentication/login', data={'email': 'wrong@gmail.com',
+                                                                              'password': 'p'}, follow_redirects=True)
+            self.assertEqual(response_wrong_email.status_code, 200)
+            self.assertTrue('Wrong email! Maybe, you have not registered' in response_wrong_email.data.decode())
+            self.assertTrue('<title>Login</title>' in response_wrong_email.data.decode())
+
+            response_wrong_password = client.post('/authentication/login', data={'email': 'test@gmail.com',
+                                                                                 'password': 'p'},
+                                                  follow_redirects=True)
+            self.assertEqual(response_wrong_password.status_code, 200)
+            self.assertTrue('Wrong password! Try again' in response_wrong_password.data.decode())
 
     def test_forgot_reset_password(self):
         self.test_client.post('/authentication/register',
@@ -78,9 +117,34 @@ class ClientTestCase(unittest.TestCase):
 
         response_reset_get = self.test_client.get(f'/authentication/reset_password/{token}')
         self.assertTrue('<title>Reset</title>' in response_reset_get.data.decode())
+
+        response = self.test_client.post(f'/authentication/reset_password/{token}',
+                                         data={'password1': 'New password', 'password2': 'Not a new password'})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue("Given passwords do not match" in response.data.decode())  # flashed message
+        self.assertTrue('<title>Reset</title>' in response.data.decode())
+
         self.test_client.post(f'/authentication/reset_password/{token}',
                               data={'password1': 'New password', 'password2': 'New password'})
         self.assertTrue(user.verify_password('New password'))
+
+        response_invalid_email = self.test_client.post('/authentication/forgot_password',
+                                                       data={'email': 'test_invalidgmail.com'},
+                                                       follow_redirects=True)
+        self.assertEqual(response_invalid_email.status_code, 200)
+        self.assertTrue("<title>Forgot</title>" in response_invalid_email.data.decode())
+
+        response_not_existing_email = self.test_client.post('/authentication/forgot_password',
+                                                            data={'email': 'test_invalid@gmail.com'},
+                                                            follow_redirects=True)
+        self.assertEqual(response_not_existing_email.status_code, 200)
+        self.assertTrue("User with such an e-mail does not exist" in response_not_existing_email.data.decode())
+
+    def test_login_required(self):
+        with self.test_client as client:
+            response = client.get('/chats/search')
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(get_flashed_messages(), ['You have to log in first', ])
 
     def test_anonymous_required(self):
         with self.test_client as client:
@@ -110,6 +174,16 @@ class ClientTestCase(unittest.TestCase):
         response = self.test_client.get('/authentication/forgot_password')
         self.assertEqual(response.status_code, 200)
         self.assertTrue('<title>Forgot</title>' in response.data.decode())
+
+    def test_reset_password_expired_get(self):
+        user = User(email='test@gmail.com', username='test', password_hash='123')
+        db.session.add(user)
+        db.session.commit()
+        token = user.get_reset_password_token(0.5)
+        time.sleep(1)
+        response = self.test_client.get(f'/authentication/reset_password/{token}')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('<title>Expired</title>' in response.data.decode())
 
     def test_reset_password_invalid_token_get(self):
         """This view required only valid token, so, the response is 404"""
@@ -207,6 +281,18 @@ class ClientTestCase(unittest.TestCase):
                         follow_redirects=True)
             response = client.get('/chats/going')
             self.assertEqual(response.status_code, 404)
+
+    def test_user_search_for_chat_get(self):
+        with self.test_client as client:
+            client.post('/authentication/register',
+                        data={'email': 'test1@gmail.com', 'username': 'test_user1',
+                              'name': 'Ann1', 'password1': 'Who am I', 'password2': 'Who am I'},
+                        follow_redirects=True)
+            client.post('/authentication/login', data={'email': 'test1@gmail.com', 'password': 'Who am I'},
+                        follow_redirects=True)
+            response = client.get('/chats/search')
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue('<title>Search for</title>' in response.data.decode())
 
     def test_ajax_search(self):
         with self.test_client as client:

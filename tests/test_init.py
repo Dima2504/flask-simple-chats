@@ -12,6 +12,7 @@ class InitTestCase(unittest.TestCase):
     """
     Tests for checking an initialization.
     """
+
     def setUp(self) -> None:
         self.app = make_app(TestConfig)
         self.app_context = self.app.app_context()
@@ -28,6 +29,14 @@ class InitTestCase(unittest.TestCase):
 
     def test_instance_folder_exists(self):
         self.assertTrue(os.path.exists(self.app.instance_path))
+
+    def test_instance_config(self):
+        with open(os.path.join(self.app.instance_path, 'production_config.py'), 'w') as file:
+            file.write("TEST_VAR = 666\nSECRET_KEY = 'blablabla'")
+        temp_app = make_app()
+        self.assertEqual(temp_app.config['TEST_VAR'], 666)
+        self.assertEqual(temp_app.config['SECRET_KEY'], 'blablabla')
+        os.remove(os.path.join(self.app.instance_path, 'production_config.py'))
 
     def test_testing_db_exists(self):
         self.assertTrue(os.path.exists(os.path.join(self.app.config['TEST_DB_PATH'], self.app.config['TEST_DB_NAME'])))

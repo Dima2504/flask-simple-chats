@@ -1,15 +1,17 @@
 import unittest
-from app.authentication.models import User, chats
-from app.chats.models import Message
-from app import make_app
-from app import db
-from app.config import TestConfig
 from typing import List
-from app.api.utils import return_chat_or_abort, return_user_or_abort, return_message_or_abort
-from app.api.utils import abort_if_not_own, abort_if_not_a_participant, abort_if_not_from_a_chat
-from app.api.utils import model_filter_by_get_params as mod_fil
-from app.api.utils import longer_than_zero
+
 from werkzeug.exceptions import NotFound, Forbidden
+
+from app import db
+from app import make_app
+from app.api.utils import abort_if_not_own, abort_if_not_a_participant, abort_if_not_from_a_chat
+from app.api.utils import longer_than_zero
+from app.api.utils import model_filter_by_get_params as mod_fil
+from app.api.utils import return_chat_or_abort, return_user_or_abort, return_message_or_abort
+from app.authentication.models import User
+from app.chats.models import Message
+from app.config import TestConfig
 
 
 class ApiUtilsTestCase(unittest.TestCase):

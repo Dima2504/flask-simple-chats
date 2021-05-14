@@ -1,16 +1,18 @@
-import unittest
-import random
-from app import make_app
-from app.config import TestConfig
-from app.authentication.exceptions import ValidationError
-from app.authentication.validators import validate_password_length, validate_equal_passwords, validate_email
-from app.authentication.validators import validate_length
 import os
+import random
+import unittest
+
+from app import make_app
+from app.authentication.exceptions import ValidationError
+from app.authentication.validators import validate_length
+from app.authentication.validators import validate_password_length, validate_equal_passwords, validate_email
+from app.config import TestConfig
 
 
 class ValidatorsTestCase(unittest.TestCase):
     """Tests implemented validators. Here there is no need to execute setUp and tearDown wrapping all the tests.
     So, there is only one initialization"""
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.app = make_app(TestConfig)
@@ -39,7 +41,7 @@ class ValidatorsTestCase(unittest.TestCase):
         :attr:`min_password_length`"""
         for _ in range(3):
             with self.assertRaises(ValidationError):
-                test_password = os.urandom(random.randint(0, self.min_password_length-1)).decode('latin1')
+                test_password = os.urandom(random.randint(0, self.min_password_length - 1)).decode('latin1')
                 validate_password_length(test_password)
         try:
             for _ in range(3):
@@ -52,7 +54,7 @@ class ValidatorsTestCase(unittest.TestCase):
         for _ in range(3):
             with self.assertRaises(ValidationError):
                 min_length = random.randint(1, 20)
-                test_password = os.urandom(random.randint(0, min_length-1)).decode('latin1')
+                test_password = os.urandom(random.randint(0, min_length - 1)).decode('latin1')
                 validate_password_length(test_password, min_length)
         try:
             for _ in range(3):
@@ -63,8 +65,11 @@ class ValidatorsTestCase(unittest.TestCase):
             self.fail('ValidationError must not have been raised')
 
     def test_validate_email(self):
-        valid_emails = ['dprice@msn.com', 'staikos@optonline.net', 'psharpe@mac.com', 'andale@yahoo.com', 'magusnet@icloud.com', 'hillct@verizon.net', 'dunstan@att.net', 'tmccarth@sbcglobal.net', ]
-        invalid_emails = ["", "  ", "foo", "bar.dk", "foo@", "@bar.dk", "foo@bar", "foo@bar.ab12", "foo@.bar.ab", "foo.@bar.co", "foo@foo@bar.co", "fo o@bar.co", "foo@bar.dk", "123@bar.dk", "foo@456. dk", "f oo@bar456.info", "fvoo@bücher .中国"]
+        valid_emails = ['dprice@msn.com', 'staikos@optonline.net', 'psharpe@mac.com', 'andale@yahoo.com',
+                        'magusnet@icloud.com', 'hillct@verizon.net', 'dunstan@att.net', 'tmccarth@sbcglobal.net', ]
+        invalid_emails = ["", "  ", "foo", "bar.dk", "foo@", "@bar.dk", "foo@bar", "foo@bar.ab12", "foo@.bar.ab",
+                          "foo.@bar.co", "foo@foo@bar.co", "fo o@bar.co", "foo@bar.dk", "123@bar.dk", "foo@456. dk",
+                          "f oo@bar456.info", "fvoo@bücher .中国"]
         for email in invalid_emails:
             with self.assertRaises(ValidationError):
                 validate_email(email)

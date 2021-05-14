@@ -1,21 +1,23 @@
-from app import make_app
-from app.config import TestConfig
+import unittest
+from datetime import datetime
+from typing import List
+
+from sqlalchemy import select
+
 from app import db
+from app import make_app
 from app.authentication import User
 from app.authentication.models import chats
 from app.chats import Message
-import unittest
-from datetime import datetime
-from sqlalchemy import select
 from app.chats.exceptions import MessageNotFoundByIndexError
-from typing import List
+from app.config import TestConfig
 
 
 class MessageModelTestCase(unittest.TestCase):
     @staticmethod
     def init_users(number) -> List[User]:
         users = []
-        for i in range(1, number+1):
+        for i in range(1, number + 1):
             users.append(User(email=f'user{i}@gmail.com', username=f'user{i}', password_hash='123'))
         return users
 
