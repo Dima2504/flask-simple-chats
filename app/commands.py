@@ -13,7 +13,7 @@ cli_commands = Blueprint('cli_commands', __name__, cli_group=None)
 
 
 @cli_commands.cli.command('tests')
-def tests_command():
+def tests_command():  # pragma: no cover
     """Run all the tests from here"""
     logger.info('Tests are starting')
 

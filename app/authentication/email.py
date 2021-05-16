@@ -13,7 +13,7 @@ from app import mail
 from . import logger
 
 
-def _send_mail_pure(app: object, server: smtplib.SMTP, from_addr: str, to_addr: str, message: str):
+def _send_mail_pure(app: object, server: smtplib.SMTP, from_addr: str, to_addr: str, message: str):  # pragma: no cover
     """
     Private function for a separate thread. It sends prepared :attr:`massage` using given connected instance of
     :class:`SMTP` from one address to another one.
@@ -29,7 +29,7 @@ def _send_mail_pure(app: object, server: smtplib.SMTP, from_addr: str, to_addr: 
     server.close()
 
 
-def build_message_pure(from_addr: str, to_addr:str, subject: str, text: str) -> str:
+def build_message_pure(from_addr: str, to_addr: str, subject: str, text: str) -> str:  # pragma: no cover
     """
     Creates correct message according to the format.
     """
@@ -41,7 +41,7 @@ def build_message_pure(from_addr: str, to_addr:str, subject: str, text: str) -> 
     return message.as_string()
 
 
-def send_mail_pure(to_addr: str, subject: str, text: str) -> Thread:
+def send_mail_pure(to_addr: str, subject: str, text: str) -> Thread:  # pragma: no cover
     """
     Function receives mail data from config, built message and sends it in separate
     thread not to block the main one. Uses the function above.
@@ -68,7 +68,7 @@ def send_mail_pure(to_addr: str, subject: str, text: str) -> Thread:
     server.login(mail_username, mail_password)
 
     thread = Thread(target=_send_mail_pure, args=(current_app._get_current_object(),
-                    server, from_addr, to_addr, message))
+                                                  server, from_addr, to_addr, message))
     thread.start()
     return thread
 
