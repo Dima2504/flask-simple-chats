@@ -1,6 +1,5 @@
 import unittest
 from datetime import datetime
-from typing import List
 
 from sqlalchemy import select
 
@@ -11,15 +10,11 @@ from app.authentication.models import chats
 from app.chats import Message
 from app.chats.exceptions import MessageNotFoundByIndexError
 from app.config import TestConfig
+from tests.test_user_model import init_users
 
 
 class MessageModelTestCase(unittest.TestCase):
-    @staticmethod
-    def init_users(number) -> List[User]:
-        users = []
-        for i in range(1, number + 1):
-            users.append(User(email=f'user{i}@gmail.com', username=f'user{i}', password_hash='123'))
-        return users
+    """Tests Message class methods"""
 
     def setUp(self) -> None:
         User.is_chat_between.cache_clear()
@@ -37,7 +32,7 @@ class MessageModelTestCase(unittest.TestCase):
         User.get_chat_id_by_users_ids.cache_clear()
 
     def test_message_init(self):
-        db.session.add_all(MessageModelTestCase.init_users(2))
+        db.session.add_all(init_users(2))
         db.session.commit()
         message = Message(text='blabla', datetime_writing=datetime.now(), sender_id=2, receiver_id=1)
         self.assertEqual(message.chat_id, 1)
@@ -50,7 +45,7 @@ class MessageModelTestCase(unittest.TestCase):
             Message(text='blabla', datetime_writing=datetime.now(), sender_id=1, receiver_id=2, chat_id=3)
 
     def test_delete_messages(self):
-        users = MessageModelTestCase.init_users(3)
+        users = init_users(3)
         m1 = Message(text='blabla', sender_id=2, receiver_id=1)
         m2 = Message(text='blabla2', sender_id=1, receiver_id=2)
         m3 = Message(text='blabla3', sender_id=1, receiver_id=2)
@@ -69,7 +64,7 @@ class MessageModelTestCase(unittest.TestCase):
         self.assertEqual(len(Message.query.all()), 0)
 
     def test_get_message_by_id(self):
-        users = MessageModelTestCase.init_users(2)
+        users = init_users(2)
         m1 = Message(text='blabla', sender_id=2, receiver_id=1)
         m2 = Message(text='blabla2', sender_id=1, receiver_id=2)
         db.session.add_all(users + [m1, m2])

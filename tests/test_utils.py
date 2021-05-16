@@ -1,6 +1,5 @@
 import os
 import unittest
-from datetime import datetime
 
 from app import db
 from app import make_app
@@ -10,6 +9,7 @@ from app.chats.utils import get_user_chats_and_last_messages as get_uc
 from app.chats.utils import get_users_unique_room_name as get_rn
 from app.chats.utils import search_for_users_by
 from app.config import TestConfig
+from tests.test_user_model import init_users
 
 
 class UtilsTestCase(unittest.TestCase):
@@ -43,16 +43,12 @@ class UtilsTestCase(unittest.TestCase):
                 get_rn(usernames[i], usernames[i])
 
     def test_get_user_chats_and_last_messages(self):
-        user1 = User(email='user1@gmail.com', username='user1', password_hash='123')
-        user2 = User(email='user2@gmail.com', username='user2', password_hash='123')
-        user3 = User(email='user3@gmail.com', username='user3', password_hash='123')
-        user4 = User(email='user4@gmail.com', username='user4', password_hash='123')
-        user5 = User(email='user5@gmail.com', username='user5', password_hash='123')
+        users = init_users(5)
         User.create_chat(1, 2)
         User.create_chat(1, 3)
         User.create_chat(1, 4)
         User.create_chat(2, 3)
-        db.session.add_all([user1, user2, user3, user4, user5])
+        db.session.add_all(users)
         m1 = Message(text='m1', sender_id=1, receiver_id=2)
         m2 = Message(text='m2', sender_id=2, receiver_id=1)
         m3 = Message(text='m3', sender_id=1, receiver_id=2)
@@ -100,15 +96,12 @@ class UtilsTestCase(unittest.TestCase):
         self.assertEqual(len(chats5), 0)
 
     def test_search_for_users_by(self):
-        user1 = User(email='user1@gmail.com', username='pasha', name="Pavlo Vasyliovych", password_hash='123',
-                     date_joined=datetime.now())
-        user2 = User(email='user2@gmail.com', username='dima', name="Dmitry Andreevich", password_hash='123',
-                     date_joined=datetime.now())
-        user3 = User(email='user3@gmail.com', username='maks', name="Maxim Ruslanovich", password_hash='123',
-                     date_joined=datetime.now())
-        user4 = User(email='user4@gmail.com', username='ann', name="Anna Alekseevna", password_hash='123',
-                     date_joined=datetime.now())
-        db.session.add_all([user1, user2, user3, user4])
+        users = init_users(4)
+        users[0].username, users[0].name = 'pasha', 'Pavlo Vasyliovych'
+        users[1].username, users[1].name = 'dima', 'Dmitry Andreevich'
+        users[2].username, users[2].name = 'maks', 'Maxim Ruslanovich'
+        users[3].username, users[3].name = 'ann', 'Anna Alekseevna'
+        db.session.add_all(users)
         db.session.commit()
         self.assertEqual(len(search_for_users_by('').all()), 4)
         self.assertEqual(len(search_for_users_by('a').all()), 4)

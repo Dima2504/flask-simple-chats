@@ -12,18 +12,11 @@ from app.api.utils import return_chat_or_abort, return_user_or_abort, return_mes
 from app.authentication.models import User
 from app.chats.models import Message
 from app.config import TestConfig
+from tests.test_user_model import init_users
 
 
 class ApiUtilsTestCase(unittest.TestCase):
     """Tests utils from api blueprint"""
-
-    @staticmethod
-    def init_users(number) -> List[User]:
-        users = []
-        for i in range(1, number + 1):
-            users.append(
-                User(email=f'user{i}@gmail.com', username=f'username{i}', name=f'name{i}', password_hash='123'))
-        return users
 
     def setUp(self) -> None:
         User.is_chat_between.cache_clear()
@@ -42,7 +35,7 @@ class ApiUtilsTestCase(unittest.TestCase):
         User.get_chat_id_by_users_ids.cache_clear()
 
     def test_return_chat_or_abort(self):
-        users = ApiUtilsTestCase.init_users(2)
+        users = init_users(2)
         User.create_chat(1, 2)
         db.session.add_all(users)
         db.session.commit()
@@ -53,7 +46,7 @@ class ApiUtilsTestCase(unittest.TestCase):
             return_chat_or_abort(2)
 
     def test_return_user_or_abort(self):
-        user1, user2 = ApiUtilsTestCase.init_users(2)
+        user1, user2 = init_users(2)
         db.session.add_all([user1, user2])
         self.assertEqual(return_user_or_abort(1), user1)
         self.assertEqual(return_user_or_abort(2), user2)
@@ -61,7 +54,7 @@ class ApiUtilsTestCase(unittest.TestCase):
             return_user_or_abort(3)
 
     def test_return_message_or_abort(self):
-        users = ApiUtilsTestCase.init_users(2)
+        users = init_users(2)
         m1 = Message(text='blabla', sender_id=2, receiver_id=1)
         m2 = Message(text='blabla2', sender_id=1, receiver_id=2)
         db.session.add_all(users + [m1, m2])
@@ -72,7 +65,7 @@ class ApiUtilsTestCase(unittest.TestCase):
             return_message_or_abort(3)
 
     def test_abort_if_not_own(self):
-        users = ApiUtilsTestCase.init_users(2)
+        users = init_users(2)
         m1 = Message(text='blabla', sender_id=2, receiver_id=1)
         m2 = Message(text='blabla2', sender_id=1, receiver_id=2)
         db.session.add_all(users + [m1, m2])
@@ -85,7 +78,7 @@ class ApiUtilsTestCase(unittest.TestCase):
             self.fail(msg="403 error must not have been raised")
 
     def test_abort_if_not_a_participant(self):
-        users = ApiUtilsTestCase.init_users(3)
+        users = init_users(3)
         User.create_chat(1, 2)
         User.create_chat(2, 3)
         db.session.add_all(users)
@@ -97,7 +90,7 @@ class ApiUtilsTestCase(unittest.TestCase):
             self.fail(msg="403 error must not have been raised")
 
     def test_abort_if_not_from_a_chat(self):
-        users = ApiUtilsTestCase.init_users(3)
+        users = init_users(3)
         m1 = Message(text='blabla', sender_id=2, receiver_id=1)
         m2 = Message(text='blabla2', sender_id=1, receiver_id=3)
         db.session.add_all(users + [m1, m2])
@@ -110,8 +103,9 @@ class ApiUtilsTestCase(unittest.TestCase):
             self.fail(msg="403 error must not have been raised")
 
     def test_model_filter_by_get_params(self):
-        users = ApiUtilsTestCase.init_users(5)
-        user_with_an_existing_name = User(email='user6@gmail.com', username='username6', name='name5',
+        users = init_users(5)
+
+        user_with_an_existing_name = User(email='user6@gmail.com', username='user6', name='name5',
                                           password_hash='123')
         users.append(user_with_an_existing_name)
         db.session.add_all(users)
@@ -120,17 +114,17 @@ class ApiUtilsTestCase(unittest.TestCase):
         self.assertEqual(users_simple_query.all(), users)
 
         # exact matches:
-        self.assertEqual(mod_fil(User, users_simple_query, {'username': 'username2'}).all(), users[1:2])
+        self.assertEqual(mod_fil(User, users_simple_query, {'username': 'user2'}).all(), users[1:2])
         self.assertEqual(mod_fil(User, users_simple_query, {'name': 'name4'}).all(), users[3:4])
         self.assertEqual(mod_fil(User, users_simple_query, {'name': 'name5'}).all(), users[4:6])
-        self.assertEqual(len(mod_fil(User, users_simple_query, {'name': 'name5', 'username': 'username4'}).all()), 0)
+        self.assertEqual(len(mod_fil(User, users_simple_query, {'name': 'name5', 'username': 'user4'}).all()), 0)
         self.assertEqual(mod_fil(User, users_simple_query, {'user_id': '1'}).all(), users[0:1])
 
         # '-like' stmt:
-        self.assertEqual(len(mod_fil(User, users_simple_query, {'username-like': 'username'}).all()), 6)
+        self.assertEqual(len(mod_fil(User, users_simple_query, {'username-like': 'user'}).all()), 6)
         self.assertEqual(len(mod_fil(User, users_simple_query, {'name-like': 'name'}).all()), 6)
         self.assertEqual(mod_fil(User, users_simple_query, {'name-like': '5'}).all(), users[4:6])
-        self.assertEqual(mod_fil(User, users_simple_query, {'username-like': 'username1'}).all(), users[0:1])
+        self.assertEqual(mod_fil(User, users_simple_query, {'username-like': 'user1'}).all(), users[0:1])
 
         # 'ordered-by' and 'ordered-by-desc' stmts:
         self.assertEqual(mod_fil(User, users_simple_query, {'ordered-by': 'date_joined'}).all(), users)
