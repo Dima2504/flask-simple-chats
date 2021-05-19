@@ -6,6 +6,8 @@ services:
     restart: always
     depends_on:
       - db
+    environment:
+      - DB_HOST=db
     env_file:
       - .env
     expose:
