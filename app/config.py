@@ -11,7 +11,6 @@ class Config:
     """
     SECRET_KEY = os.getenv('SECRET_KEY') or 'development'
     SEND_FILE_MAX_AGE_DEFAULT = 0
-    DEBUG = True
     DB_USERNAME = os.getenv('DB_USERNAME') or 'postgres'
     DB_PASSWORD = os.getenv('DB_PASSWORD') or 'postgres'
     DB_HOST = os.getenv('DB_HOST') or '0.0.0.0'
