@@ -29,7 +29,7 @@ def model_filter_by_get_params(model: DefaultMeta, query: BaseQuery, args: dict)
             like: http://localhost:5000/api/users?username-like=ma
         3. To sort an output use 'ordered-by' and 'ordered-by-desc' parameter and specify db column name to order by:
             http://localhost:5000/api/users?name-like=a&ordered-by=username
-        4. To restrict the number of results user 'limit' and 'offset' statements together or separately:
+        4. To restrict the number of results use 'limit' and 'offset' statements together or separately:
             http://localhost:5000/api/users?name-like=a&ordered-by=username&limit=2&offset=3
 
         A simple use case is below::
