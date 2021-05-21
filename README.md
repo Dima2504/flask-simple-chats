@@ -11,7 +11,7 @@ created chats after a certain period. The current api gives an access to all the
 # Instalation
 ## Using docker-compose
 
-The simples way to install and execute the application is to use [Docker](https://www.docker.com/) and [Docker-compose](https://docs.docker.com/compose/):
+The simplest way to install and execute the application is to use [Docker](https://www.docker.com/) and [Docker-compose](https://docs.docker.com/compose/):
 #### Clone the repository:
 ```bash
 $ git clone https://github.com/Dima2504/flask-simple-chats.git
@@ -58,13 +58,13 @@ $ . ./venv/bin/activate
 # install dependencies
 $ pip install -r requirements.txt
 ```
-Note: make sure, that you are using [Python 3.8.0](https://www.python.org/downloads/release/python-380/) or higher and have installed python3-venv package, if you have Debian/Ubuntu system.  
+Note: make sure, that you are using [Python 3.8.0](https://www.python.org/downloads/release/python-380/) or higher and have installed `python3-venv` package, if you have Debian/Ubuntu system.  
 
 #### Create database on your postgres server:
 ```
 postgres=# CREATE DATABASE "flask-simple-chats" ENCODING "UTF8";
 ```
-Note: Application's config expects you to be using database, named 'flask-simple-chats', being a default user 'postgres' with a password equal to 'postgres'. If you have another password or work by different user, specify the valid credential in DB_NAME, DB_USERNAME and DB_PASSWORD environment variables.
+Note: Application's config expects you to be using database, named `flask-simple-chats`, being a default user `postgres` with a password equal to `postgres`. If you want to name your database differently or have another password or work by a different user, specify the valid credential in `DB_NAME`, `DB_USERNAME` and `DB_PASSWORD` environment variables.
 
 #### Apply migrations:
 ```bash
@@ -90,7 +90,7 @@ Now, browse the following link: [http://localhost:8000](http://localhost:8000).
 
 # Configuration
 
-Both using Docker and installing the application on you own, you may want to declare some 'outstanding' settings, or even just do not want to specify configuration in environment variables for some reasons. At this rate, flask [instance folder](https://flask.palletsprojects.com/en/1.1.x/config/#instance-folders) is the best choice. Create a file named "production_config.py" and freely set there necessary variables. Then build and up the docker-compose, or just start the server on you machine. 
+Both using Docker and installing the application on you own, you may want to declare some 'outstanding' settings, or even just do not want to specify configuration in environment variables for some reasons. At this rate, flask [instance folder](https://flask.palletsprojects.com/en/1.1.x/config/#instance-folders) is the best choice. Create a file named `production_config.py` and freely set there necessary variables. Then build and up the docker-compose, or just start the server on you machine. 
 ```bash
 .
 ├── instance
@@ -108,7 +108,7 @@ Now, when starting the application, the settings above will be applied.
 
 # API Quickstart
 As it has been pointed out, flask simple chats realizes a light api interface. It is expected to expand, but even the current functionality has the right to use. So, here is a quick overview of the implemented functions.  
-Note: all the api urls have **"/api"** prefix, so do not forget about that.
+Note: all the api urls have `/api` prefix, so do not forget about that.
 
 
 ## Authorization details
