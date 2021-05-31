@@ -497,3 +497,5 @@ See the report:
 ```bash
 $ coverage report
 ```
+# License & copyright
+Licensed under the [MIT License](LICENSE).
